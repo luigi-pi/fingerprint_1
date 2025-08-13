@@ -13,13 +13,36 @@
 #include <vector>
 #include <functional>
 
-namespace esphome {
-namespace api {
+namespace esphome::api {
+
+// Client information structure
+struct ClientInfo {
+  std::string name;      // Client name from Hello message
+  std::string peername;  // IP:port from socket
+
+  std::string get_combined_info() const {
+    if (name == peername) {
+      // Before Hello message, both are the same
+      return name;
+    }
+    return name + " (" + peername + ")";
+  }
+};
 
 // Keepalive timeout in milliseconds
 static constexpr uint32_t KEEPALIVE_TIMEOUT_MS = 60000;
 // Maximum number of entities to process in a single batch during initial state/info sending
-static constexpr size_t MAX_INITIAL_PER_BATCH = 20;
+// This was increased from 20 to 24 after removing the unique_id field from entity info messages,
+// which reduced message sizes allowing more entities per batch without exceeding packet limits
+static constexpr size_t MAX_INITIAL_PER_BATCH = 24;
+// Maximum number of packets to process in a single batch (platform-dependent)
+// This limit exists to prevent stack overflow from the PacketInfo array in process_batch_
+// Each PacketInfo is 8 bytes, so 64 * 8 = 512 bytes, 32 * 8 = 256 bytes
+#if defined(USE_ESP32) || defined(USE_HOST)
+static constexpr size_t MAX_PACKETS_PER_BATCH = 64;  // ESP32 has 8KB+ stack, HOST has plenty
+#else
+static constexpr size_t MAX_PACKETS_PER_BATCH = 32;  // ESP8266/RP2040/etc have smaller stacks
+#endif
 
 class APIConnection : public APIServerConnection {
  public:
@@ -108,15 +131,16 @@ class APIConnection : public APIServerConnection {
   void media_player_command(const MediaPlayerCommandRequest &msg) override;
 #endif
   bool try_send_log_message(int level, const char *tag, const char *line, size_t message_len);
+#ifdef USE_API_HOMEASSISTANT_SERVICES
   void send_homeassistant_service_call(const HomeassistantServiceResponse &call) {
     if (!this->flags_.service_call_subscription)
       return;
-    this->send_message(call);
+    this->send_message(call, HomeassistantServiceResponse::MESSAGE_TYPE);
   }
+#endif
 #ifdef USE_BLUETOOTH_PROXY
   void subscribe_bluetooth_le_advertisements(const SubscribeBluetoothLEAdvertisementsRequest &msg) override;
   void unsubscribe_bluetooth_le_advertisements(const UnsubscribeBluetoothLEAdvertisementsRequest &msg) override;
-  bool send_bluetooth_le_advertisement(const BluetoothLEAdvertisementResponse &msg);
 
   void bluetooth_device_request(const BluetoothDeviceRequest &msg) override;
   void bluetooth_gatt_read(const BluetoothGATTReadRequest &msg) override;
@@ -125,15 +149,14 @@ class APIConnection : public APIServerConnection {
   void bluetooth_gatt_write_descriptor(const BluetoothGATTWriteDescriptorRequest &msg) override;
   void bluetooth_gatt_get_services(const BluetoothGATTGetServicesRequest &msg) override;
   void bluetooth_gatt_notify(const BluetoothGATTNotifyRequest &msg) override;
-  BluetoothConnectionsFreeResponse subscribe_bluetooth_connections_free(
-      const SubscribeBluetoothConnectionsFreeRequest &msg) override;
+  bool send_subscribe_bluetooth_connections_free_response(const SubscribeBluetoothConnectionsFreeRequest &msg) override;
   void bluetooth_scanner_set_mode(const BluetoothScannerSetModeRequest &msg) override;
 
 #endif
 #ifdef USE_HOMEASSISTANT_TIME
   void send_time_request() {
     GetTimeRequest req;
-    this->send_message(req);
+    this->send_message(req, GetTimeRequest::MESSAGE_TYPE);
   }
 #endif
 
@@ -144,8 +167,7 @@ class APIConnection : public APIServerConnection {
   void on_voice_assistant_audio(const VoiceAssistantAudio &msg) override;
   void on_voice_assistant_timer_event_response(const VoiceAssistantTimerEventResponse &msg) override;
   void on_voice_assistant_announce_request(const VoiceAssistantAnnounceRequest &msg) override;
-  VoiceAssistantConfigurationResponse voice_assistant_get_configuration(
-      const VoiceAssistantConfigurationRequest &msg) override;
+  bool send_voice_assistant_get_configuration_response(const VoiceAssistantConfigurationRequest &msg) override;
   void voice_assistant_set_configuration(const VoiceAssistantSetConfiguration &msg) override;
 #endif
 
@@ -168,15 +190,17 @@ class APIConnection : public APIServerConnection {
     // we initiated ping
     this->flags_.sent_ping = false;
   }
+#ifdef USE_API_HOMEASSISTANT_STATES
   void on_home_assistant_state_response(const HomeAssistantStateResponse &msg) override;
+#endif
 #ifdef USE_HOMEASSISTANT_TIME
   void on_get_time_response(const GetTimeResponse &value) override;
 #endif
-  HelloResponse hello(const HelloRequest &msg) override;
-  ConnectResponse connect(const ConnectRequest &msg) override;
-  DisconnectResponse disconnect(const DisconnectRequest &msg) override;
-  PingResponse ping(const PingRequest &msg) override { return {}; }
-  DeviceInfoResponse device_info(const DeviceInfoRequest &msg) override;
+  bool send_hello_response(const HelloRequest &msg) override;
+  bool send_connect_response(const ConnectRequest &msg) override;
+  bool send_disconnect_response(const DisconnectRequest &msg) override;
+  bool send_ping_response(const PingRequest &msg) override;
+  bool send_device_info_response(const DeviceInfoRequest &msg) override;
   void list_entities(const ListEntitiesRequest &msg) override { this->list_entities_iterator_.begin(); }
   void subscribe_states(const SubscribeStatesRequest &msg) override {
     this->flags_.state_subscription = true;
@@ -187,19 +211,20 @@ class APIConnection : public APIServerConnection {
     if (msg.dump_config)
       App.schedule_dump_config();
   }
+#ifdef USE_API_HOMEASSISTANT_SERVICES
   void subscribe_homeassistant_services(const SubscribeHomeassistantServicesRequest &msg) override {
     this->flags_.service_call_subscription = true;
   }
+#endif
+#ifdef USE_API_HOMEASSISTANT_STATES
   void subscribe_home_assistant_states(const SubscribeHomeAssistantStatesRequest &msg) override;
-  GetTimeResponse get_time(const GetTimeRequest &msg) override {
-    // TODO
-    return {};
-  }
+#endif
+  bool send_get_time_response(const GetTimeRequest &msg) override;
 #ifdef USE_API_SERVICES
   void execute_service(const ExecuteServiceRequest &msg) override;
 #endif
 #ifdef USE_API_NOISE
-  NoiseEncryptionSetKeyResponse noise_encryption_set_key(const NoiseEncryptionSetKeyRequest &msg) override;
+  bool send_noise_encryption_set_key_response(const NoiseEncryptionSetKeyRequest &msg) override;
 #endif
 
   bool is_authenticated() override {
@@ -209,8 +234,18 @@ class APIConnection : public APIServerConnection {
     return static_cast<ConnectionState>(this->flags_.connection_state) == ConnectionState::CONNECTED ||
            this->is_authenticated();
   }
+  uint8_t get_log_subscription_level() const { return this->flags_.log_subscription; }
+
+  // Get client API version for feature detection
+  bool client_supports_api_version(uint16_t major, uint16_t minor) const {
+    return this->client_api_version_major_ > major ||
+           (this->client_api_version_major_ == major && this->client_api_version_minor_ >= minor);
+  }
+
   void on_fatal_error() override;
+#ifdef USE_API_PASSWORD
   void on_unauthenticated_access() override;
+#endif
   void on_no_setup_connection() override;
   ProtoWriteBuffer create_buffer(uint32_t reserve_size) override {
     // FIXME: ensure no recursive writes can happen
@@ -260,48 +295,58 @@ class APIConnection : public APIServerConnection {
   bool try_to_clear_buffer(bool log_out_of_space);
   bool send_buffer(ProtoWriteBuffer buffer, uint8_t message_type) override;
 
-  std::string get_client_combined_info() const {
-    if (this->client_info_ == this->client_peername_) {
-      // Before Hello message, both are the same (just IP:port)
-      return this->client_info_;
-    }
-    return this->client_info_ + " (" + this->client_peername_ + ")";
-  }
+  std::string get_client_combined_info() const { return this->client_info_.get_combined_info(); }
 
   // Buffer allocator methods for batch processing
   ProtoWriteBuffer allocate_single_message_buffer(uint16_t size);
   ProtoWriteBuffer allocate_batch_message_buffer(uint16_t size);
 
  protected:
-  // Helper function to fill common entity info fields
-  static void fill_entity_info_base(esphome::EntityBase *entity, InfoResponseProtoMessage &response) {
-    // Set common fields that are shared by all entity types
-    response.key = entity->get_object_id_hash();
-    response.object_id = entity->get_object_id();
+  // Helper function to handle authentication completion
+  void complete_authentication_();
 
-    if (entity->has_own_name())
-      response.name = entity->get_name();
-
-    // Set common EntityBase properties
-    response.icon = entity->get_icon();
-    response.disabled_by_default = entity->is_disabled_by_default();
-    response.entity_category = static_cast<enums::EntityCategory>(entity->get_entity_category());
-#ifdef USE_DEVICES
-    response.device_id = entity->get_device_id();
+#ifdef USE_API_HOMEASSISTANT_STATES
+  void process_state_subscriptions_();
 #endif
-  }
-
-  // Helper function to fill common entity state fields
-  static void fill_entity_state_base(esphome::EntityBase *entity, StateResponseProtoMessage &response) {
-    response.key = entity->get_object_id_hash();
-#ifdef USE_DEVICES
-    response.device_id = entity->get_device_id();
-#endif
-  }
 
   // Non-template helper to encode any ProtoMessage
   static uint16_t encode_message_to_buffer(ProtoMessage &msg, uint8_t message_type, APIConnection *conn,
                                            uint32_t remaining_size, bool is_single);
+
+  // Helper to fill entity state base and encode message
+  static uint16_t fill_and_encode_entity_state(EntityBase *entity, StateResponseProtoMessage &msg, uint8_t message_type,
+                                               APIConnection *conn, uint32_t remaining_size, bool is_single) {
+    msg.key = entity->get_object_id_hash();
+#ifdef USE_DEVICES
+    msg.device_id = entity->get_device_id();
+#endif
+    return encode_message_to_buffer(msg, message_type, conn, remaining_size, is_single);
+  }
+
+  // Helper to fill entity info base and encode message
+  static uint16_t fill_and_encode_entity_info(EntityBase *entity, InfoResponseProtoMessage &msg, uint8_t message_type,
+                                              APIConnection *conn, uint32_t remaining_size, bool is_single) {
+    // Set common fields that are shared by all entity types
+    msg.key = entity->get_object_id_hash();
+    // IMPORTANT: get_object_id() may return a temporary std::string
+    std::string object_id = entity->get_object_id();
+    msg.set_object_id(StringRef(object_id));
+
+    if (entity->has_own_name()) {
+      msg.set_name(entity->get_name());
+    }
+
+    // Set common EntityBase properties
+#ifdef USE_ENTITY_ICON
+    msg.set_icon(entity->get_icon_ref());
+#endif
+    msg.disabled_by_default = entity->is_disabled_by_default();
+    msg.entity_category = static_cast<enums::EntityCategory>(entity->get_entity_category());
+#ifdef USE_DEVICES
+    msg.device_id = entity->get_device_id();
+#endif
+    return encode_message_to_buffer(msg, message_type, conn, remaining_size, is_single);
+  }
 
 #ifdef USE_VOICE_ASSISTANT
   // Helper to check voice assistant validity and connection ownership
@@ -463,13 +508,14 @@ class APIConnection : public APIServerConnection {
   std::unique_ptr<camera::CameraImageReader> image_reader_;
 #endif
 
-  // Group 3: Strings (12 bytes each on 32-bit, 4-byte aligned)
-  std::string client_info_;
-  std::string client_peername_;
+  // Group 3: Client info struct (24 bytes on 32-bit: 2 strings × 12 bytes each)
+  ClientInfo client_info_;
 
   // Group 4: 4-byte types
   uint32_t last_traffic_;
+#ifdef USE_API_HOMEASSISTANT_STATES
   int state_subs_at_ = -1;
+#endif
 
   // Function pointer type for message encoding
   using MessageCreatorPtr = uint16_t (*)(EntityBase *, APIConnection *, uint32_t remaining_size, bool is_single);
@@ -703,8 +749,12 @@ class APIConnection : public APIServerConnection {
     this->deferred_batch_.add_item_front(entity, MessageCreator(function_ptr), message_type, estimated_size);
     return this->schedule_batch_();
   }
+
+  // Helper function to log API errors with errno
+  void log_warning_(const char *message, APIError err);
+  // Specific helper for duplicated error message
+  void log_socket_operation_failed_(APIError err);
 };
 
-}  // namespace api
-}  // namespace esphome
+}  // namespace esphome::api
 #endif

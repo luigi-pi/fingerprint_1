@@ -104,7 +104,7 @@ async def test_scheduler_heap_stress(
         # Wait for all callbacks to execute (should be quick, but give more time for scheduling)
         try:
             await asyncio.wait_for(test_complete_future, timeout=10.0)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             # Report how many we got
             missing_ids = sorted(set(range(1000)) - executed_callbacks)
             pytest.fail(
