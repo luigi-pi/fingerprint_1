@@ -88,19 +88,22 @@ class Scheduler {
   struct SchedulerItem {
     // Ordered by size to minimize padding
     Component *component;
-    uint32_t interval;
-    // 64-bit time to handle millis() rollover. The scheduler combines the 32-bit millis()
-    // with a 16-bit rollover counter to create a 64-bit time that won't roll over for
-    // billions of years. This ensures correct scheduling even when devices run for months.
-    uint64_t next_execution_;
-
     // Optimized name storage using tagged union
     union {
       const char *static_name;  // For string literals (no allocation)
       char *dynamic_name;       // For allocated strings
     } name_;
-
+    uint32_t interval;
+    // Split time to handle millis() rollover. The scheduler combines the 32-bit millis()
+    // with a 16-bit rollover counter to create a 48-bit time space (using 32+16 bits).
+    // This is intentionally limited to 48 bits, not stored as a full 64-bit value.
+    // With 49.7 days per 32-bit rollover, the 16-bit counter supports
+    // 49.7 days × 65536 = ~8900 years. This ensures correct scheduling
+    // even when devices run for months. Split into two fields for better memory
+    // alignment on 32-bit systems.
+    uint32_t next_execution_low_;  // Lower 32 bits of execution time (millis value)
     std::function<void()> callback;
+    uint16_t next_execution_high_;  // Upper 16 bits (millis_major counter)
 
 #ifdef ESPHOME_THREAD_MULTI_ATOMICS
     // Multi-threaded with atomics: use atomic for lock-free access
@@ -126,7 +129,8 @@ class Scheduler {
     SchedulerItem()
         : component(nullptr),
           interval(0),
-          next_execution_(0),
+          next_execution_low_(0),
+          next_execution_high_(0),
 #ifdef ESPHOME_THREAD_MULTI_ATOMICS
           // remove is initialized in the member declaration as std::atomic<bool>{false}
           type(TIMEOUT),
@@ -185,7 +189,21 @@ class Scheduler {
     }
 
     static bool cmp(const std::unique_ptr<SchedulerItem> &a, const std::unique_ptr<SchedulerItem> &b);
-    const char *get_type_str() const { return (type == TIMEOUT) ? "timeout" : "interval"; }
+
+    // Note: We use 48 bits total (32 + 16), stored in a 64-bit value for API compatibility.
+    // The upper 16 bits of the 64-bit value are always zero, which is fine since
+    // millis_major_ is also 16 bits and they must match.
+    constexpr uint64_t get_next_execution() const {
+      return (static_cast<uint64_t>(next_execution_high_) << 32) | next_execution_low_;
+    }
+
+    constexpr void set_next_execution(uint64_t value) {
+      next_execution_low_ = static_cast<uint32_t>(value);
+      // Cast to uint16_t intentionally truncates to lower 16 bits of the upper 32 bits.
+      // This is correct because millis_major_ that creates these values is also 16 bits.
+      next_execution_high_ = static_cast<uint16_t>(value >> 32);
+    }
+    constexpr const char *get_type_str() const { return (type == TIMEOUT) ? "timeout" : "interval"; }
     const char *get_source() const { return component ? component->get_component_source() : "unknown"; }
   };
 
