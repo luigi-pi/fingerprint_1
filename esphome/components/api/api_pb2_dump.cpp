@@ -1110,7 +1110,17 @@ void HomeAssistantStateResponse::dump_to(std::string &out) const {
 }
 #endif
 void GetTimeRequest::dump_to(std::string &out) const { out.append("GetTimeRequest {}"); }
-void GetTimeResponse::dump_to(std::string &out) const { dump_field(out, "epoch_seconds", this->epoch_seconds); }
+void GetTimeResponse::dump_to(std::string &out) const {
+  MessageDumpHelper helper(out, "GetTimeResponse");
+  dump_field(out, "epoch_seconds", this->epoch_seconds);
+  out.append("  timezone: ");
+  if (!this->timezone_ref_.empty()) {
+    out.append("'").append(this->timezone_ref_.c_str()).append("'");
+  } else {
+    out.append("'").append(this->timezone).append("'");
+  }
+  out.append("\n");
+}
 #ifdef USE_API_SERVICES
 void ListEntitiesServicesArgument::dump_to(std::string &out) const {
   MessageDumpHelper helper(out, "ListEntitiesServicesArgument");
@@ -1704,6 +1714,7 @@ void BluetoothScannerStateResponse::dump_to(std::string &out) const {
   MessageDumpHelper helper(out, "BluetoothScannerStateResponse");
   dump_field(out, "state", static_cast<enums::BluetoothScannerState>(this->state));
   dump_field(out, "mode", static_cast<enums::BluetoothScannerMode>(this->mode));
+  dump_field(out, "configured_mode", static_cast<enums::BluetoothScannerMode>(this->configured_mode));
 }
 void BluetoothScannerSetModeRequest::dump_to(std::string &out) const {
   MessageDumpHelper helper(out, "BluetoothScannerSetModeRequest");
