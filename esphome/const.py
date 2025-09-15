@@ -4,7 +4,7 @@ from enum import Enum
 
 from esphome.enum import StrEnum
 
-__version__ = "2025.9.0b1"
+__version__ = "2025.9.0b2"
 
 ALLOWED_NAME_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789-_"
 VALID_SUBSTITUTIONS_CHARACTERS = (
@@ -114,6 +114,7 @@ CONF_AND = "and"
 CONF_ANGLE = "angle"
 CONF_ANY = "any"
 CONF_AP = "ap"
+CONF_API = "api"
 CONF_APPARENT_POWER = "apparent_power"
 CONF_ARDUINO_VERSION = "arduino_version"
 CONF_AREA = "area"
