@@ -159,6 +159,54 @@ template<typename T, size_t N> class StaticVector {
   const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
 };
 
+/// Fixed-capacity vector - allocates once at runtime, never reallocates
+/// This avoids std::vector template overhead (_M_realloc_insert, _M_default_append)
+/// when size is known at initialization but not at compile time
+template<typename T> class FixedVector {
+ private:
+  T *data_{nullptr};
+  size_t size_{0};
+  size_t capacity_{0};
+
+ public:
+  FixedVector() = default;
+
+  ~FixedVector() {
+    if (data_ != nullptr) {
+      delete[] data_;
+    }
+  }
+
+  // Disable copy to avoid accidental copies
+  FixedVector(const FixedVector &) = delete;
+  FixedVector &operator=(const FixedVector &) = delete;
+
+  // Allocate capacity - can only be called once on empty vector
+  void init(size_t n) {
+    if (data_ == nullptr && n > 0) {
+      data_ = new T[n];
+      capacity_ = n;
+      size_ = 0;
+    }
+  }
+
+  /// Add element without bounds checking
+  /// Caller must ensure sufficient capacity was allocated via init()
+  /// Silently ignores pushes beyond capacity (no exception or assertion)
+  void push_back(const T &value) {
+    if (size_ < capacity_) {
+      data_[size_++] = value;
+    }
+  }
+
+  size_t size() const { return size_; }
+
+  /// Access element without bounds checking (matches std::vector behavior)
+  /// Caller must ensure index is valid (i < size())
+  T &operator[](size_t i) { return data_[i]; }
+  const T &operator[](size_t i) const { return data_[i]; }
+};
+
 ///@}
 
 /// @name Mathematics
