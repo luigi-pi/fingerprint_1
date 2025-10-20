@@ -18,7 +18,7 @@ from esphome.const import (
 
 from . import CONF_FINGERPRINT_GROW_ID, FingerprintGrowComponent
 
-DEPENDENCIES = ["fingerprint_grow"]
+DEPENDENCIES = ["fingerprintgrow"]
 
 CONFIG_SCHEMA = cv.Schema(
     {

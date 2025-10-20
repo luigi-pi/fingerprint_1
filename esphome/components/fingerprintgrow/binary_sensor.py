@@ -5,7 +5,7 @@ from esphome.const import CONF_ICON, ICON_KEY_PLUS
 
 from . import CONF_FINGERPRINT_GROW_ID, FingerprintGrowComponent
 
-DEPENDENCIES = ["fingerprint_grow"]
+DEPENDENCIES = ["fingerprintgrow"]
 
 CONFIG_SCHEMA = binary_sensor.binary_sensor_schema().extend(
     {
