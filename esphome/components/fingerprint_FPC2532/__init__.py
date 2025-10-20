@@ -81,7 +81,7 @@ AuraLEDControlAction = fingerprint_FPC2532_ns.class_(
     "AuraLEDControlAction", automation.Action
 )
 
-AuraLEDState = fingerprint_FPC2532_ns.enum("GrowAuraLEDState", True)
+AuraLEDState = fingerprint_FPC2532_ns.enum("AuraLEDState", True)
 AURA_LED_STATES = {
     "BREATHING": AuraLEDState.BREATHING,
     "FLASHING": AuraLEDState.FLASHING,
@@ -91,7 +91,7 @@ AURA_LED_STATES = {
     "GRADUAL_OFF": AuraLEDState.GRADUAL_OFF,
 }
 validate_aura_led_states = cv.enum(AURA_LED_STATES, upper=True)
-AuraLEDColor = fingerprint_FPC2532_ns.enum("GrowAuraLEDColor", True)
+AuraLEDColor = fingerprint_FPC2532_ns.enum("AuraLEDColor", True)
 AURA_LED_COLORS = {
     "RED": AuraLEDColor.RED,
     "BLUE": AuraLEDColor.BLUE,
@@ -324,7 +324,7 @@ async def fingerprint_FPC2532_delete_all_to_code(config, action_id, template_arg
     return var
 
 
-FINGERPRINT_GROW_LED_CONTROL_ACTION_SCHEMA = cv.maybe_simple_value(
+FINGERPRINT__LED_CONTROL_ACTION_SCHEMA = cv.maybe_simple_value(
     {
         cv.GenerateID(): cv.use_id(FingerprintFPC2532Component),
         cv.Required(CONF_STATE): cv.templatable(cv.boolean),
@@ -336,7 +336,7 @@ FINGERPRINT_GROW_LED_CONTROL_ACTION_SCHEMA = cv.maybe_simple_value(
 @automation.register_action(
     "fingerprint_FPC2532.led_control",
     LEDControlAction,
-    FINGERPRINT_GROW_LED_CONTROL_ACTION_SCHEMA,
+    FINGERPRINT__LED_CONTROL_ACTION_SCHEMA,
 )
 async def fingerprint_FPC2532_led_control_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg)
