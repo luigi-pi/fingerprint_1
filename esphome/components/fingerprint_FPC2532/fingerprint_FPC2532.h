@@ -107,8 +107,8 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   }
   void set_sensing_pin(GPIOPin *sensing_pin) { this->sensing_pin_ = sensing_pin; }
   void set_sensor_power_pin(GPIOPin *sensor_power_pin) { this->sensor_power_pin_ = sensor_power_pin; }
-  void set_password(uint32_t password) { this->password_ = password; }
-  void set_new_password(uint32_t new_password) { this->new_password_ = new_password; }
+  // void set_password(uint32_t password) { this->password_ = password; }
+  // void set_new_password(uint32_t new_password) { this->new_password_ = new_password; }
   void set_idle_period_to_sleep_ms(uint32_t period_ms) { this->idle_period_to_sleep_ms_ = period_ms; }
   void set_fingerprint_count_sensor(sensor::Sensor *fingerprint_count_sensor) {
     this->fingerprint_count_sensor_ = fingerprint_count_sensor;
@@ -158,15 +158,15 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void delete_fingerprint(uint16_t finger_id);
   void delete_all_fingerprints();
 
-  void led_control(bool state);
-  void aura_led_control(uint8_t state, uint8_t speed, uint8_t color, uint8_t count);
+  // void led_control(bool state);
+  // void aura_led_control(uint8_t state, uint8_t speed, uint8_t color, uint8_t count);
 
  protected:
   void scan_and_match_();
   uint8_t scan_image_(uint8_t buffer);
   uint8_t save_fingerprint_();
-  bool check_password_();
-  bool set_password_();
+  // bool check_password_();
+  // bool set_password_();
   bool get_parameters_();
   void get_fingerprint_count_();
   uint8_t transfer_(std::vector<uint8_t> *p_data_buffer);
@@ -177,8 +177,8 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   std::vector<uint8_t> data_ = {};
   uint8_t address_[4] = {0xFF, 0xFF, 0xFF, 0xFF};
   uint16_t capacity_ = 64;
-  uint32_t password_ = 0x0;
-  uint32_t new_password_ = std::numeric_limits<uint32_t>::max();
+  // uint32_t password_ = 0x0;
+  // uint32_t new_password_ = std::numeric_limits<uint32_t>::max();
   GPIOPin *sensing_pin_{nullptr};
   GPIOPin *sensor_power_pin_{nullptr};
   uint8_t enrollment_image_ = 0;
@@ -189,8 +189,8 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   bool has_power_pin_ = false;
   bool is_sensor_awake_ = false;
   uint32_t last_transfer_ms_ = 0;
-  uint32_t last_aura_led_control_ = 0;
-  uint16_t last_aura_led_duration_ = 0;
+  // uint32_t last_aura_led_control_ = 0;
+  // uint16_t last_aura_led_duration_ = 0;
   uint16_t system_identifier_code_ = 0;
   uint32_t idle_period_to_sleep_ms_ = UINT32_MAX;
   sensor::Sensor *fingerprint_count_sensor_{nullptr};
@@ -304,7 +304,7 @@ template<typename... Ts> class DeleteAllAction : public Action<Ts...>, public Pa
  public:
   void play(Ts... x) override { this->parent_->delete_all_fingerprints(); }
 };
-
+/*
 template<typename... Ts> class LEDControlAction : public Action<Ts...>, public Parented<FingerprintFPC2532Component> {
  public:
   TEMPLATABLE_VALUE(bool, state)
@@ -315,11 +315,8 @@ template<typename... Ts> class LEDControlAction : public Action<Ts...>, public P
   }
 };
 
-template<typename... Ts> class AuraLEDControlAction : public Action<Ts...>, public Parented<FingerprintFPC2532Component> {
- public:
-  TEMPLATABLE_VALUE(uint8_t, state)
-  TEMPLATABLE_VALUE(uint8_t, speed)
-  TEMPLATABLE_VALUE(uint8_t, color)
+template<typename... Ts> class AuraLEDControlAction : public Action<Ts...>, public Parented<FingerprintFPC2532Component>
+{ public: TEMPLATABLE_VALUE(uint8_t, state) TEMPLATABLE_VALUE(uint8_t, speed) TEMPLATABLE_VALUE(uint8_t, color)
   TEMPLATABLE_VALUE(uint8_t, count)
 
   void play(Ts... x) override {
@@ -331,6 +328,6 @@ template<typename... Ts> class AuraLEDControlAction : public Action<Ts...>, publ
     this->parent_->aura_led_control(state, speed, color, count);
   }
 };
-
+*/
 }  // namespace fingerprint_FPC2532
 }  // namespace esphome
