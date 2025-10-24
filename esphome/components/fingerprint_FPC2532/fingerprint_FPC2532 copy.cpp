@@ -23,8 +23,7 @@ fpc_result_t FingerprintFPC2532Component::fpc_hal_tx(uint8_t *data, size_t len) 
   while (this->available())
     this->fpc_hal_rx();
   this->write_array(data, len);
-  return FPC_RESULT_OK;  // this is not guaranteeing that the array was actually sent, since there is no timeout
-                         // handling here
+  return FPC_RESULT_OK;  // doesn't guarantee array was actually sent: no timeout handling here
 }
 fpc_result_t FingerprintFPC2532Component::fpc_hal_rx(uint8_t *data, size_t len) {
   int rc = 0;
