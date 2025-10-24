@@ -73,7 +73,7 @@ enum FPC2532Response {
   BAD_PACKET = 0xFE,
   TIMEOUT = 0xFF,
 };
-
+/*
 enum AuraLEDState {
   BREATHING = 0x01,
   FLASHING = 0x02,
@@ -81,8 +81,8 @@ enum AuraLEDState {
   ALWAYS_OFF = 0x04,
   GRADUAL_ON = 0x05,
   GRADUAL_OFF = 0x06,
-};
-
+}; */
+/*
 enum AuraLEDColor {
   RED = 0x01,
   BLUE = 0x02,
@@ -92,7 +92,7 @@ enum AuraLEDColor {
   CYAN = 0x06,
   WHITE = 0x07,
 };
-
+ */
 class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDevice {
  public:
   void update() override;

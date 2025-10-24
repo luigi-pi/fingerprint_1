@@ -226,7 +226,7 @@ uint8_t FingerprintGrowComponent::save_fingerprint_() {
   return this->data_[0];
 }
 
-bool FingerprintGrowComponent::check_password_() {
+/* bool FingerprintGrowComponent::check_password_() {
   ESP_LOGD(TAG, "Checking password");
   this->data_ = {VERIFY_PASSWORD, (uint8_t) (this->password_ >> 24), (uint8_t) (this->password_ >> 16),
                  (uint8_t) (this->password_ >> 8), (uint8_t) (this->password_ & 0xFF)};
@@ -252,7 +252,7 @@ bool FingerprintGrowComponent::set_password_() {
     return true;
   }
   return false;
-}
+} */
 
 bool FingerprintGrowComponent::get_parameters_() {
   ESP_LOGD(TAG, "Getting parameters");
