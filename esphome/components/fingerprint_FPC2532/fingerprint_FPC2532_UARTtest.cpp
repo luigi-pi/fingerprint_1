@@ -40,7 +40,7 @@ fpc_result_t FingerprintFPC2532Component::fpc_hal_rx(uint8_t *data, std::size_t 
 
   return rc == 0 ? FPC_RESULT_OK : FPC_RESULT_FAILURE;
 }
-void fpc_hal_delay_ms(uint32_t ms) { delay(ms); }
+void FingerprintFPC2532Component::fpc_hal_delay_ms(uint32_t ms) { delay(ms); }
 void FingerprintFPC2532Component::dump_config() {}
 
 }  // namespace fingerprint_FPC2532
