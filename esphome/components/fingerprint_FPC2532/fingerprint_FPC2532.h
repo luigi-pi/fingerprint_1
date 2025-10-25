@@ -9,10 +9,11 @@
 #include <cstddef>
 #include <limits>
 #include <vector>
+#include "fpc_api.h"
 
 namespace esphome {
 namespace fingerprint_FPC2532 {
-
+using ::fpc_result_t; /* to avoid errors due to namespaces */
 class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDevice {
  public:
   void update() override;
@@ -24,10 +25,11 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
 
  protected:
   bool get_parameters_();
+  fpc_result_t fpc_hal_init(void);
   fpc_result_t fpc_hal_tx(uint8_t *data, std::size_t len);
   fpc_result_t fpc_hal_rx(uint8_t *data, std::size_t len);
-  uint8_t transfer_(std::vector<uint8_t> *p_data_buffer);
-  uint8_t send_command_();
+  void fpc_hal_delay_ms(uint32_t ms);
+
   void sensor_wakeup_();
   void sensor_sleep_();
 
