@@ -113,7 +113,7 @@ typedef struct {
   /** Size of the following payload. */
   uint16_t payload_size;
   /** Placeholder for payload. Typically a command.
-   * original: uint8_t payload[];
+   * original: uint8_t *payload;
    * modified to avoid flexible array member for C++17 compliance
    * memory allocation needed to be handled manually
    */
