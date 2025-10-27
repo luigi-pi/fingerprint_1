@@ -20,8 +20,8 @@ void FingerprintFPC2532Component::setup() {
 HAL FUNCTIONS DEFINITONS
 ------------------------
 */
-fpc_result_t FingerprintFPC2532Component::fpc_hal_init(void) { return FPC_RESULT_OK; }
-fpc_result_t FingerprintFPC2532Component::fpc_hal_tx(uint8_t *data, std::size_t len) {
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_hal_init(void) { return FPC_RESULT_OK; }
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_hal_tx(uint8_t *data, std::size_t len) {
   if (!data || len == 0) {
     return FPC_RESULT_FAILURE;
   }
@@ -34,7 +34,7 @@ fpc_result_t FingerprintFPC2532Component::fpc_hal_tx(uint8_t *data, std::size_t 
   this->write_array(data, len);
   return FPC_RESULT_OK;  // doesn't guarantee array was actually sent: no timeout handling here
 }
-fpc_result_t FingerprintFPC2532Component::fpc_hal_rx(uint8_t *data, std::size_t len) {
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_hal_rx(uint8_t *data, std::size_t len) {
   int rc = 0;
   rc = !this->read_array(data, len);
 
