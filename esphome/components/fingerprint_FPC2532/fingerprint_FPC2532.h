@@ -13,7 +13,7 @@
 
 namespace esphome {
 namespace fingerprint_FPC2532 {
-using ::fpc_result_t; /* to avoid errors due to namespaces */
+// using fpc::fpc_result_t; /* to avoid errors due to namespaces */
 class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDevice {
  public:
   void update() override;
@@ -25,9 +25,9 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
 
  protected:
   bool get_parameters_();
-  fpc_result_t fpc_hal_init(void);
-  fpc_result_t fpc_hal_tx(uint8_t *data, std::size_t len);
-  fpc_result_t fpc_hal_rx(uint8_t *data, std::size_t len);
+  fpc::fpc_result_t fpc_hal_init(void);
+  fpc::fpc_result_t fpc_hal_tx(uint8_t *data, std::size_t len);
+  fpc::fpc_result_t fpc_hal_rx(uint8_t *data, std::size_t len);
   void fpc_hal_delay_ms(uint32_t ms);
 
   void sensor_wakeup_();
