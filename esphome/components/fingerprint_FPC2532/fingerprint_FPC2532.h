@@ -28,6 +28,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   fpc::fpc_result_t fpc_hal_init(void);
   fpc::fpc_result_t fpc_hal_tx(uint8_t *data, std::size_t len);
   fpc::fpc_result_t fpc_hal_rx(uint8_t *data, std::size_t len);
+  int fpc_hal_data_available(void);
   void fpc_hal_delay_ms(uint32_t ms);
 
   void sensor_wakeup_();
