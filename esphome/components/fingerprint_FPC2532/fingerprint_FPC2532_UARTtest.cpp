@@ -18,7 +18,86 @@ void FingerprintFPC2532Component::setup() { this->fpc_hal_init(); }
 HOST FUNCTIONS DEFINITONS
 ------------------------
 */
+/*Helper functions*/
 
+char *get_id_type_str_(uint16_t id_type) {
+  switch (id_type) {
+    case ID_TYPE_NONE:
+      return "ID.None";
+    case ID_TYPE_ALL:
+      return "ID.All";
+    case ID_TYPE_SPECIFIED:
+      return "ID.Specified";
+    case ID_TYPE_GENERATE_NEW:
+      return "ID.Generate";
+  }
+  return "ID.Unknown";
+}
+
+char *get_event_str_(uint16_t evt) {
+  switch (evt) {
+    case EVENT_NONE:
+      return "Evt.None";
+    case EVENT_IDLE:
+      return "Evt.Idle";
+    case EVENT_ARMED:
+      return "Evt.Armed";
+    case EVENT_FINGER_DETECT:
+      return "Evt.FingerDetect";
+    case EVENT_FINGER_LOST:
+      return "Evt.FingerLost";
+    case EVENT_IMAGE_READY:
+      return "Evt.ImageCaptured";
+    case EVENT_CMD_FAILED:
+      return "Evt.Failure";
+  }
+  return "Evt.Unknown";
+}
+
+char *get_enroll_feedback_str_(uint8_t feedback) {
+  switch (feedback) {
+    case ENROLL_FEEDBACK_DONE:
+      return "Done";
+    case ENROLL_FEEDBACK_PROGRESS:
+      return "Progress";
+    case ENROLL_FEEDBACK_REJECT_LOW_QUALITY:
+      return "Reject.LowQuality";
+    case ENROLL_FEEDBACK_REJECT_LOW_COVERAGE:
+      return "Reject.LowCoverage";
+    case ENROLL_FEEDBACK_REJECT_LOW_MOBILITY:
+      return "Reject.LowMobility";
+    case ENROLL_FEEDBACK_REJECT_OTHER:
+      return "Reject.Other";
+    case ENROLL_FEEDBACK_PROGRESS_IMMOBILE:
+      return "Progress.Immobile";
+    default:
+      break;
+  }
+  return "Unknown";
+}
+
+char *get_gesture_str_(uint8_t gesture) {
+  switch (gesture) {
+    case CMD_NAV_EVENT_NONE:
+      return "None";
+    case CMD_NAV_EVENT_UP:
+      return "Gesture.Up";
+    case CMD_NAV_EVENT_DOWN:
+      return "Gesture.Down";
+    case CMD_NAV_EVENT_RIGHT:
+      return "Gesture.Right";
+    case CMD_NAV_EVENT_LEFT:
+      return "Gesture.Left";
+    case CMD_NAV_EVENT_PRESS:
+      return "Gesture.Press";
+    case CMD_NAV_EVENT_LONG_PRESS:
+      return "Gesture.LongPress";
+    default:
+      break;
+  }
+  return "Unknown";
+}
+/* Command Responses / Events */
 fpc::fpc_result_t FingerprintFPC2532Component::fpc_host_sample_handle_rx_data(void) {
   fpc::fpc_result_t result;
   fpc::fpc_frame_hdr_t frame_hdr;
@@ -119,6 +198,39 @@ static fpc::fpc_result_t parse_cmd(std::vector<uint8_t> &frame_payload, std::siz
   return result;
 }
 
+static fpc::fpc_result_t parse_cmd_status(fpc::fpc_cmd_hdr_t *cmd_hdr, std::size_t size) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_status_response_t *status;
+
+  status = (fpc::fpc_cmd_status_response_t *) cmd_hdr;
+
+  if (!status) {
+    ESP_LOGE(TAG, "CMD_STATUS: Invalid parameter");
+    result = FPC_RESULT_INVALID_PARAM;
+  }
+
+  if (result == FPC_RESULT_OK) {
+    if (size != sizeof(fpc::fpc_cmd_status_response_t)) {
+      ESP_LOGE(TAG, "CMD_STATUS invalid size (%d vs %d)", size, sizeof(fpc::fpc_cmd_status_response_t));
+      result = FPC_RESULT_INVALID_PARAM;
+    }
+  }
+
+  if (result == FPC_RESULT_OK) {
+    ESP_LOGE(TAG, "CMD_STATUS.event = %s (%04X)", get_event_str_(status->event), status->event);
+    ESP_LOGE(TAG, "CMD_STATUS.state = %04X", status->state);
+    ESP_LOGE(TAG, "CMD_STATUS.error = %d", status->app_fail_code);
+  }
+
+  if ((status->app_fail_code != 0) && cmd_callbacks.on_error) {
+    cmd_callbacks.on_error(status->app_fail_code);
+  } else if (cmd_callbacks.on_status) {
+    cmd_callbacks.on_status(status->event, status->state);
+  }
+
+  return result;
+}
+
 /*
 ------------------------
 HAL FUNCTIONS DEFINITONS
@@ -141,8 +253,6 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_hal_tx(uint8_t *data, std::si
 fpc::fpc_result_t FingerprintFPC2532Component::fpc_hal_rx(uint8_t *data, std::size_t len) {
   return this->read_array(data, len) ? FPC_RESULT_OK : FPC_RESULT_FAILURE;
 }
-int FingerprintFPC2532Component::fpc_hal_data_available(void) { return this->available() > 0; }
-
 void FingerprintFPC2532Component::fpc_hal_delay_ms(uint32_t ms) { delay(ms); }
 void FingerprintFPC2532Component::dump_config() {}
 
