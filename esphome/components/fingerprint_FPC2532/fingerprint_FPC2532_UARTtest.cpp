@@ -18,6 +18,8 @@ void FingerprintFPC2532Component::setup() { this->fpc_hal_init(); }
 HOST FUNCTIONS DEFINITONS
 ------------------------
 */
+/** Optional command callback functions. */
+FingerprintFPC2532Component::fpc_cmd_callbacks_t cmd_callbacks;
 /*Helper functions*/
 
 char *get_id_type_str_(uint16_t id_type) {
