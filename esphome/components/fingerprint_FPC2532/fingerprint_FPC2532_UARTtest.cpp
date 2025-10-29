@@ -1,6 +1,7 @@
 #include "fingerprint_FPC2532.h"
 #include "esphome/core/log.h"
 #include <cinttypes>
+#include <vector>
 #include "fpc_api.h"
 
 namespace esphome {
@@ -10,9 +11,112 @@ static const char *const TAG = "fingerprint_FPC2532";
 
 void FingerprintFPC2532Component::update() {}
 
-void FingerprintFPC2532Component::setup() {
-  this->fpc_hal_init();
-  // this->get_parameters_();  // added
+void FingerprintFPC2532Component::setup() { this->fpc_hal_init(); }
+
+/*
+------------------------
+HOST FUNCTIONS DEFINITONS
+------------------------
+*/
+
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_host_sample_handle_rx_data(void) {
+  fpc::fpc_result_t result;
+  fpc::fpc_frame_hdr_t frame_hdr;
+  std::vector<uint8_t> frame_payload;
+
+  /* Step 1: Read Frame Header */
+  result = this->fpc_hal_rx((uint8_t *) &frame_hdr, sizeof(fpc::fpc_frame_hdr_t));
+
+  if (result == FPC_RESULT_OK) {
+    /* Sanity Check */
+    if (frame_hdr.version != FPC_FRAME_PROTOCOL_VERSION || ((frame_hdr.flags & FPC_FRAME_FLAG_SENDER_FW_APP) == 0) ||
+        (frame_hdr.type != FPC_FRAME_TYPE_CMD_RESPONSE && frame_hdr.type != FPC_FRAME_TYPE_CMD_EVENT)) {
+      ESP_LOGE(TAG, "Sanity check of rx data failed");
+      result = FPC_RESULT_IO_BAD_DATA;
+    }
+  }
+
+  if (result == FPC_RESULT_OK) {
+    try {
+      frame_payload.resize(frame_hdr.payload_size);
+    } catch (const std::bad_alloc &) {
+      ESP_LOGE(TAG, "Failed to allocate memory for frame payload");
+      result = FPC_RESULT_OUT_OF_MEMORY;
+    }
+  }
+
+  if (result == FPC_RESULT_OK) {
+    /* Step 2: Read Frame Payload (Command) */
+    result = this->fpc_hal_rx(frame_payload.data(), frame_hdr.payload_size);
+  }
+
+  if (result == FPC_RESULT_OK) {
+    result = parse_cmd(frame_payload, frame_hdr.payload_size);
+  }
+
+  if (result != FPC_RESULT_OK) {
+    ESP_LOGE(TAG, "Failed to handle RX data, error %d", result);
+  }
+
+  return result;
+}
+
+static fpc::fpc_result_t parse_cmd(std::vector<uint8_t> &frame_payload, std::size_t size) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_hdr_t *cmd_hdr;
+
+  cmd_hdr = (fpc::fpc_cmd_hdr_t *) frame_payload.data();
+
+  if (!cmd_hdr) {
+    ESP_LOGE(TAG, "Parse Cmd: Invalid parameter");
+    result = FPC_RESULT_INVALID_PARAM;
+  }
+
+  if (result == FPC_RESULT_OK) {
+    if (cmd_hdr->type != FPC_FRAME_TYPE_CMD_EVENT && cmd_hdr->type != FPC_FRAME_TYPE_CMD_RESPONSE) {
+      ESP_LOGE(TAG, "Parse Cmd: Invalid parameter (type)");
+      result = FPC_RESULT_INVALID_PARAM;
+    }
+  }
+
+  if (result == FPC_RESULT_OK) {
+    switch (cmd_hdr->cmd_id) {
+      case CMD_STATUS:
+        return parse_cmd_status(cmd_hdr, size);
+        break;
+      /*
+      case CMD_VERSION:
+        return parse_cmd_version(cmd_hdr, size);
+        break;
+      case CMD_ENROLL:
+        return parse_cmd_enroll_status(cmd_hdr, size);
+        break;
+      case CMD_IDENTIFY:
+        return parse_cmd_identify(cmd_hdr, size);
+        break;
+      case CMD_LIST_TEMPLATES:
+        return parse_cmd_list_templates(cmd_hdr, size);
+        break;
+      case CMD_NAVIGATION:
+        return parse_cmd_navigation_event(cmd_hdr, size);
+        break;
+      case CMD_GPIO_CONTROL:
+        return parse_cmd_gpio_control(cmd_hdr, size);
+        break;
+      case CMD_GET_SYSTEM_CONFIG:
+        return parse_cmd_get_system_config(cmd_hdr, size);
+        break;
+      case CMD_BIST:
+        return parse_cmd_bist(cmd_hdr, size);
+        break;
+       */
+      default:
+        ESP_LOGE(TAG, "Parse Cmd: Unexpected Command ID");
+        break;
+    };
+  }
+
+  return result;
 }
 
 /*
@@ -35,10 +139,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_hal_tx(uint8_t *data, std::si
   return FPC_RESULT_OK;  // doesn't guarantee array was actually sent: no timeout handling here
 }
 fpc::fpc_result_t FingerprintFPC2532Component::fpc_hal_rx(uint8_t *data, std::size_t len) {
-  int rc = 0;
-  rc = !this->read_array(data, len);
-
-  return rc == 0 ? FPC_RESULT_OK : FPC_RESULT_FAILURE;
+  return this->read_array(data, len) ? FPC_RESULT_OK : FPC_RESULT_FAILURE;
 }
 void FingerprintFPC2532Component::fpc_hal_delay_ms(uint32_t ms) { delay(ms); }
 void FingerprintFPC2532Component::dump_config() {}

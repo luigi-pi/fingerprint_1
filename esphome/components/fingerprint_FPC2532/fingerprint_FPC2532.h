@@ -25,17 +25,20 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
 
  protected:
   bool get_parameters_();
-  fpc::fpc_result_t fpc_hal_init(void);
-  fpc::fpc_result_t fpc_hal_tx(uint8_t *data, std::size_t len);
-  fpc::fpc_result_t fpc_hal_rx(uint8_t *data, std::size_t len);
-  void fpc_hal_delay_ms(uint32_t ms);
-
   void sensor_wakeup_();
   void sensor_sleep_();
 
   GPIOPin *sensing_pin_{nullptr};
   GPIOPin *sensor_power_pin_{nullptr};
   uint32_t last_transfer_ms_ = 0;
+  //--- HOST functions ---
+  fpc::fpc_result_t fpc_host_sample_handle_rx_data(void);
+
+  //--- HAL functions ---
+  fpc::fpc_result_t fpc_hal_init(void);
+  fpc::fpc_result_t fpc_hal_tx(uint8_t *data, std::size_t len);
+  fpc::fpc_result_t fpc_hal_rx(uint8_t *data, std::size_t len);
+  void fpc_hal_delay_ms(uint32_t ms);
 };
 
 }  // namespace fingerprint_FPC2532
