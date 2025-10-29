@@ -129,12 +129,13 @@ typedef struct {
   uint16_t cmd_id;
   /** Type of frame. One of FPC_BP_FRAME_TYPE_*. */
   uint16_t type;
-  /** Placeholder for payload, if any. See fpc_cmds_*.h for command payloads.
-   * original: uint8_t *payload;
-   * modified to avoid flexible array member for C++17 compliance
-   * memory allocation needed to be handled manuallygit
+  /** Placeholder for payload. Typically a command.
+   * original: uint8_t payload[];
+   * opt 1. remove flexible array member since not used directly (suggested by software's owner)
+   * opt2. modify to *payload to avoid flexible array member for C++17 compliance
+   * memory allocation needed to be handled manually
    */
-  uint8_t *payload;
+  // uint8_t *payload;
 } fpc_cmd_hdr_t;
 
 /* -----------------------------------------------------------------------------
