@@ -219,9 +219,9 @@ static fpc::fpc_result_t parse_cmd_status(fpc::fpc_cmd_hdr_t *cmd_hdr, std::size
   }
 
   if (result == FPC_RESULT_OK) {
-    ESP_LOGE(TAG, "CMD_STATUS.event = %s (%04X)", get_event_str_(status->event), status->event);
-    ESP_LOGE(TAG, "CMD_STATUS.state = %04X", status->state);
-    ESP_LOGE(TAG, "CMD_STATUS.error = %d", status->app_fail_code);
+    ESP_LOGI(TAG, "CMD_STATUS.event = %s (%04X)", get_event_str_(status->event), status->event);
+    ESP_LOGI(TAG, "CMD_STATUS.state = %04X", status->state);
+    ESP_LOGI(TAG, "CMD_STATUS.error = %d", status->app_fail_code);
   }
 
   if ((status->app_fail_code != 0) && cmd_callbacks.on_error) {
