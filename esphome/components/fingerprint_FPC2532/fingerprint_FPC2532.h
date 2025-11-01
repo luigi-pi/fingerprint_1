@@ -52,7 +52,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
    */
 
   fpc::fpc_result_t fpc_host_sample_handle_rx_data(void);
-  fpc::fpc_result_t parse_cmd(std::vector<uint8_t> &frame_payload, std::size_t size);
+  fpc::fpc_result_t parse_cmd(uint8_t *frame_payload, std::size_t size);
   fpc::fpc_result_t parse_cmd_status(fpc::fpc_cmd_hdr_t *cmd_hdr, std::size_t size);
 
   //--- HAL functions ---

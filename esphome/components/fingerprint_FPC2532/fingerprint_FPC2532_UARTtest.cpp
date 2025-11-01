@@ -9,7 +9,16 @@ namespace fingerprint_FPC2532 {
 
 static const char *const TAG = "fingerprint_FPC2532";
 
-void FingerprintFPC2532Component::update() {}
+void FingerprintFPC2532Component::update() {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  if (this->available()) {
+    result = fpc_host_sample_handle_rx_data();
+    if (result != FPC_RESULT_OK) {
+      ESP_LOGE(TAG, "Failed to handle RX data, error %d", result);
+      fpc_hal_delay_ms(1000);
+    }
+  }
+}
 
 void FingerprintFPC2532Component::setup() { this->fpc_hal_init(); }
 
@@ -103,7 +112,8 @@ char *get_gesture_str_(uint8_t gesture) {
 fpc::fpc_result_t FingerprintFPC2532Component::fpc_host_sample_handle_rx_data(void) {
   fpc::fpc_result_t result;
   fpc::fpc_frame_hdr_t frame_hdr;
-  std::vector<uint8_t> frame_payload;
+  // std::vector<uint8_t> frame_payload;
+  uint8_t *frame_payload = NULL;
 
   /* Step 1: Read Frame Header */
   result = this->fpc_hal_rx((uint8_t *) &frame_hdr, sizeof(fpc::fpc_frame_hdr_t));
@@ -118,21 +128,24 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_host_sample_handle_rx_data(vo
   }
 
   if (result == FPC_RESULT_OK) {
-    try {
-      frame_payload.resize(frame_hdr.payload_size);
-    } catch (const std::bad_alloc &) {
-      ESP_LOGE(TAG, "Failed to allocate memory for frame payload");
+    frame_payload = static_cast<uint8_t *>(malloc(frame_hdr.payload_size));
+    if (!frame_payload) {
+      ESP_LOGE(TAG, "Failed to malloc");
       result = FPC_RESULT_OUT_OF_MEMORY;
     }
   }
 
   if (result == FPC_RESULT_OK) {
     /* Step 2: Read Frame Payload (Command) */
-    result = this->fpc_hal_rx(frame_payload.data(), frame_hdr.payload_size);
+    result = this->fpc_hal_rx(frame_payload, frame_hdr.payload_size);
   }
 
   if (result == FPC_RESULT_OK) {
     result = parse_cmd(frame_payload, frame_hdr.payload_size);
+  }
+
+  if (frame_payload) {
+    free(frame_payload);
   }
 
   if (result != FPC_RESULT_OK) {
@@ -142,11 +155,11 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_host_sample_handle_rx_data(vo
   return result;
 }
 
-fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd(std::vector<uint8_t> &frame_payload, std::size_t size) {
+fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd(uint8_t *frame_payload, std::size_t size) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_hdr_t *cmd_hdr;
 
-  cmd_hdr = (fpc::fpc_cmd_hdr_t *) frame_payload.data();
+  cmd_hdr = (fpc::fpc_cmd_hdr_t *) frame_payload;
 
   if (!cmd_hdr) {
     ESP_LOGE(TAG, "Parse Cmd: Invalid parameter");
