@@ -142,7 +142,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_host_sample_handle_rx_data(vo
   return result;
 }
 
-static fpc::fpc_result_t parse_cmd(std::vector<uint8_t> &frame_payload, std::size_t size) {
+fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd(std::vector<uint8_t> &frame_payload, std::size_t size) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_hdr_t *cmd_hdr;
 
@@ -200,7 +200,7 @@ static fpc::fpc_result_t parse_cmd(std::vector<uint8_t> &frame_payload, std::siz
   return result;
 }
 
-static fpc::fpc_result_t parse_cmd_status(fpc::fpc_cmd_hdr_t *cmd_hdr, std::size_t size) {
+fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr_t *cmd_hdr, std::size_t size) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_status_response_t *status;
 
@@ -222,14 +222,19 @@ static fpc::fpc_result_t parse_cmd_status(fpc::fpc_cmd_hdr_t *cmd_hdr, std::size
     ESP_LOGI(TAG, "CMD_STATUS.event = %s (%04X)", get_event_str_(status->event), status->event);
     ESP_LOGI(TAG, "CMD_STATUS.state = %04X", status->state);
     ESP_LOGI(TAG, "CMD_STATUS.error = %d", status->app_fail_code);
+    if (this->status_sensor_ != nullptr) {
+      this->status_sensor_->publish_state(((uint16_t) status->state));
+    }
+    // additional handling of status error or status event
   }
-
-  if ((status->app_fail_code != 0) && cmd_callbacks.on_error) {
-    cmd_callbacks.on_error(status->app_fail_code);
-  } else if (cmd_callbacks.on_status) {
-    cmd_callbacks.on_status(status->event, status->state);
-  }
-
+  // modify if callbacks are needed for these events
+  /*
+    if ((status->app_fail_code != 0) && cmd_callbacks.on_error) {
+      cmd_callbacks.on_error(status->app_fail_code);
+    } else if (cmd_callbacks.on_status) {
+      cmd_callbacks.on_status(status->event, status->state);
+    }
+  */
   return result;
 }
 

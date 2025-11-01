@@ -22,6 +22,8 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
 
   void set_sensing_pin(GPIOPin *sensing_pin) { this->sensing_pin_ = sensing_pin; }
   void set_sensor_power_pin(GPIOPin *sensor_power_pin) { this->sensor_power_pin_ = sensor_power_pin; }
+  void set_status_sensor(sensor::Sensor *status_sensor) { this->status_sensor_ = status_sensor; }
+
   typedef struct {
     void (*on_error)(uint16_t error);
     void (*on_status)(uint16_t event, uint16_t state);
@@ -43,12 +45,15 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   GPIOPin *sensing_pin_{nullptr};
   GPIOPin *sensor_power_pin_{nullptr};
   uint32_t last_transfer_ms_ = 0;
+  sensor::Sensor *status_sensor_{nullptr};
   //--- HOST functions ---
   /**
    * @brief Callback functions for command responses (optional).
    */
 
   fpc::fpc_result_t fpc_host_sample_handle_rx_data(void);
+  fpc::fpc_result_t parse_cmd(std::vector<uint8_t> &frame_payload, std::size_t size);
+  fpc::fpc_result_t parse_cmd_status(fpc::fpc_cmd_hdr_t *cmd_hdr, std::size_t size);
 
   //--- HAL functions ---
   fpc::fpc_result_t fpc_hal_init(void);
