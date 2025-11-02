@@ -125,6 +125,9 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_host_sample_handle_rx_data(vo
         (frame_hdr.type != FPC_FRAME_TYPE_CMD_RESPONSE && frame_hdr.type != FPC_FRAME_TYPE_CMD_EVENT)) {
       ESP_LOGE(TAG, "Sanity check of rx data failed");
       result = FPC_RESULT_IO_BAD_DATA;
+    } else {
+      ESP_LOGI(TAG, "Received Header frame: version=%02X, flags=%02X, type=%02X, payload_size=%" PRIu32,
+               frame_hdr.version, frame_hdr.flags, frame_hdr.type, frame_hdr.payload_size);
     }
   }
 
