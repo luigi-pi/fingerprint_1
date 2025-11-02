@@ -12,7 +12,7 @@ static const char *const TAG = "fingerprint_FPC2532";
 
 void FingerprintFPC2532Component::update() {
   digitalWrite(2, LED_state_ ? HIGH : LOW);
-  if (millis() - start_ > 1000) {
+  if (millis() - start_ > 5000) {
     ESP_LOGI(TAG, "manda il comando status");
     fpc_cmd_status_request();
     start_ = millis();
