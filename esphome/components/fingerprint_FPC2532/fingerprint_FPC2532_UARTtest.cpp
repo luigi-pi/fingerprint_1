@@ -11,6 +11,11 @@ namespace fingerprint_FPC2532 {
 static const char *const TAG = "fingerprint_FPC2532";
 
 void FingerprintFPC2532Component::update() {
+  if (millis() - start_ > 1000) {
+    ESP_LOGI(TAG, "manda il comando status");
+    fpc_cmd_status_request();
+    start_ = millis();
+  }
   fpc::fpc_result_t result;
   size_t n = this->available();
   if (n) {
@@ -26,11 +31,9 @@ void FingerprintFPC2532Component::update() {
 }
 
 void FingerprintFPC2532Component::setup() {
-  delay(1);
-  ESP_LOGI(TAG, "Setup started");
-  delay(10);
   this->fpc_hal_init();
-  // fpc_cmd_status_request();
+  fpc_cmd_status_request();
+  start_ = millis();
 }
 
 /*
