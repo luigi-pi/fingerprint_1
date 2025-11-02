@@ -10,7 +10,8 @@ namespace fingerprint_FPC2532 {
 static const char *const TAG = "fingerprint_FPC2532";
 
 void FingerprintFPC2532Component::update() {
-  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_result_t result;
+  ESP_LOGI(TAG, "no communication available");
   if (this->available()) {
     result = fpc_host_sample_handle_rx_data();
     if (result != FPC_RESULT_OK) {
@@ -31,7 +32,7 @@ HOST FUNCTIONS DEFINITONS
 FingerprintFPC2532Component::fpc_cmd_callbacks_t cmd_callbacks;
 /*Helper functions*/
 
-char *get_id_type_str_(uint16_t id_type) {
+const char *get_id_type_str_(uint16_t id_type) {
   switch (id_type) {
     case ID_TYPE_NONE:
       return "ID.None";
@@ -45,7 +46,7 @@ char *get_id_type_str_(uint16_t id_type) {
   return "ID.Unknown";
 }
 
-char *get_event_str_(uint16_t evt) {
+const char *get_event_str_(uint16_t evt) {
   switch (evt) {
     case EVENT_NONE:
       return "Evt.None";
@@ -65,7 +66,7 @@ char *get_event_str_(uint16_t evt) {
   return "Evt.Unknown";
 }
 
-char *get_enroll_feedback_str_(uint8_t feedback) {
+const char *get_enroll_feedback_str_(uint8_t feedback) {
   switch (feedback) {
     case ENROLL_FEEDBACK_DONE:
       return "Done";
@@ -87,7 +88,7 @@ char *get_enroll_feedback_str_(uint8_t feedback) {
   return "Unknown";
 }
 
-char *get_gesture_str_(uint8_t gesture) {
+const char *get_gesture_str_(uint8_t gesture) {
   switch (gesture) {
     case CMD_NAV_EVENT_NONE:
       return "None";
