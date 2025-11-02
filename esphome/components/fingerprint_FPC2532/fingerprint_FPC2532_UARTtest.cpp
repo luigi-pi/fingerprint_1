@@ -26,8 +26,9 @@ void FingerprintFPC2532Component::update() {
 }
 
 void FingerprintFPC2532Component::setup() {
+  ESP_LOGI(TAG, "Setup started");
   this->fpc_hal_init();
-  fpc_cmd_status_request();
+  // fpc_cmd_status_request();
 }
 
 /*
@@ -191,17 +192,8 @@ const char *fpc_result_to_string(fpc::fpc_result_t result) {
       return "Unknown Error";
   }
 }
-/* Command Requests */
 
-/**
- * @brief Creates a CMD Packet and transfers it on active interface.
- *
- * Creates a CMD Frame Header and adds the command data to it.
- *
- * @param cmd Command Header with payload.
- *
- * @return Result Code
- */
+/* Command Requests */
 fpc::fpc_result_t FingerprintFPC2532Component::fpc_send_request(fpc::fpc_cmd_hdr_t *cmd, size_t size) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_frame_hdr_t frame = {0};
