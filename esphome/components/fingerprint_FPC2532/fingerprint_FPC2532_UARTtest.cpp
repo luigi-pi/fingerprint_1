@@ -26,7 +26,9 @@ void FingerprintFPC2532Component::update() {
 }
 
 void FingerprintFPC2532Component::setup() {
+  delay(1);
   ESP_LOGI(TAG, "Setup started");
+  delay(10);
   this->fpc_hal_init();
   // fpc_cmd_status_request();
 }
