@@ -43,6 +43,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   bool get_parameters_();
   void sensor_wakeup_();
   void sensor_sleep_();
+  const uint8_t RST_PIN_ = 26;  // RST_N pin -evaluate if add it on init_py to set via yaml
 
   GPIOPin *sensing_pin_{nullptr};
   GPIOPin *sensor_power_pin_{nullptr};
@@ -63,6 +64,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
 
   //--- HAL functions ---
   fpc::fpc_result_t fpc_hal_init(void);
+  void hal_reset_device();
   fpc::fpc_result_t fpc_hal_tx(uint8_t *data, std::size_t len);
   fpc::fpc_result_t fpc_hal_rx(uint8_t *data, std::size_t len);
   void fpc_hal_delay_ms(uint32_t ms);

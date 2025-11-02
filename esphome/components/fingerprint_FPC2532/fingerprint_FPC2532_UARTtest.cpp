@@ -36,8 +36,8 @@ void FingerprintFPC2532Component::setup() {
   this->fpc_hal_init();
   fpc_cmd_status_request();
   start_ = millis();
-  pinMode(2, OUTPUT);
   LED_state_ = true;
+  pinMode(2, OUTPUT);  // blue builtin LED
 }
 
 /*
@@ -414,7 +414,17 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
 HAL FUNCTIONS DEFINITONS
 ------------------------
 */
-fpc::fpc_result_t FingerprintFPC2532Component::fpc_hal_init(void) { return FPC_RESULT_OK; }
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_hal_init(void) {
+  pinMode(RST_PIN_, OUTPUT);  // RST_N pin
+  digitalWrite(RST_PIN_, HIGH);
+  return FPC_RESULT_OK;
+}
+void FingerprintFPC2532Component::hal_reset_device() {
+  digitalWrite(RST_PIN_, LOW);
+  delay(10);
+  digitalWrite(RST_PIN_, HIGH);
+  ESP_LOGI(TAG, "System Reset via RST_N pin");
+}
 fpc::fpc_result_t FingerprintFPC2532Component::fpc_hal_tx(uint8_t *data, std::size_t len) {
   if (!data || len == 0) {
     return FPC_RESULT_FAILURE;
