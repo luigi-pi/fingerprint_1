@@ -12,13 +12,13 @@ static const char *const TAG = "fingerprint_FPC2532";
 void FingerprintFPC2532Component::update() {
   fpc::fpc_result_t result;
   ESP_LOGI(TAG, "no communication available");
-  if (this->available()) {
-    result = fpc_host_sample_handle_rx_data();
-    if (result != FPC_RESULT_OK) {
-      ESP_LOGE(TAG, "Failed to handle RX data, error %d", result);
-      fpc_hal_delay_ms(1000);
-    }
+  // if (this->available()) {
+  result = fpc_host_sample_handle_rx_data();
+  if (result != FPC_RESULT_OK) {
+    ESP_LOGE(TAG, "Failed to handle RX data, error %d", result);
+    fpc_hal_delay_ms(1000);
   }
+  //}
 }
 
 void FingerprintFPC2532Component::setup() { this->fpc_hal_init(); }
