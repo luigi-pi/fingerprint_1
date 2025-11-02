@@ -109,6 +109,82 @@ const char *get_gesture_str_(uint8_t gesture) {
   }
   return "Unknown";
 }
+
+const char *fpc_result_to_string(fpc::fpc_result_t result) {
+  switch (result) {
+    // Information / Success
+    case FPC_RESULT_OK:
+      return "OK";
+    case FPC_PENDING_OPERATION:
+      return "Pending Operation";
+    case FPC_RESULT_DATA_NOT_SET:
+      return "Data Not Set";
+    case FPC_RESULT_CMD_ID_NOT_SUPPORTED:
+      return "Command ID Not Supported";
+
+    // General Errors
+    case FPC_RESULT_FAILURE:
+      return "Failure";
+    case FPC_RESULT_INVALID_PARAM:
+      return "Invalid Parameter";
+    case FPC_RESULT_WRONG_STATE:
+      return "Wrong State";
+    case FPC_RESULT_OUT_OF_MEMORY:
+      return "Out of Memory";
+    case FPC_RESULT_TIMEOUT:
+      return "Timeout";
+    case FPC_RESULT_NOT_SUPPORTED:
+      return "Not Supported";
+
+    // Template / User ID Errors
+    case FPC_RESULT_USER_ID_EXISTS:
+      return "User ID Exists";
+    case FPC_RESULT_USER_ID_NOT_FOUND:
+      return "User ID Not Found";
+    case FPC_RESULT_STORAGE_IS_FULL:
+      return "Storage Is Full";
+    case FPC_RESULT_FLASH_ERROR:
+      return "Flash Error";
+    case FPC_RESULT_IDENTIFY_LOCKOUT:
+      return "Identify Lockout";
+    case FPC_RESULT_STORAGE_IS_EMPTY:
+      return "Storage Is Empty";
+
+    // IO Errors
+    case FPC_RESULT_IO_BUSY:
+      return "IO Busy";
+    case FPC_RESULT_IO_RUNTIME_FAILURE:
+      return "IO Runtime Failure";
+    case FPC_RESULT_IO_BAD_DATA:
+      return "IO Bad Data";
+    case FPC_RESULT_IO_NOT_SUPPORTED:
+      return "IO Not Supported";
+    case FPC_RESULT_IO_NO_DATA:
+      return "IO No Data";
+
+    // Image Capture Errors
+    case FPC_RESULT_COULD_NOT_ARM:
+      return "Could Not Arm";
+    case FPC_RESULT_CAPTURE_FAILED:
+      return "Capture Failed";
+    case FPC_RESULT_BAD_IMAGE_QUALITY:
+      return "Bad Image Quality";
+    case FPC_RESULT_NO_IMAGE:
+      return "No Image";
+
+    // Other Errors
+    case FPC_RESULT_SENSOR_ERROR:
+      return "Sensor Error";
+    case FPC_RESULT_PROTOCOL_VERSION_ERROR:
+      return "Protocol Version Error";
+    case FPC_STARTUP_FAILURE:
+      return "Startup Failure";
+
+    default:
+      return "Unknown Error";
+  }
+}
+
 /* Command Responses / Events */
 fpc::fpc_result_t FingerprintFPC2532Component::fpc_host_sample_handle_rx_data(void) {
   fpc::fpc_result_t result;
