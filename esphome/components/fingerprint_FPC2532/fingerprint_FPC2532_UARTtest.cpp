@@ -1,5 +1,6 @@
 #include "fingerprint_FPC2532.h"
 #include "esphome/core/log.h"
+//#include "esphome.h"
 #include <cinttypes>
 #include <vector>
 #include "fpc_api.h"
@@ -24,7 +25,10 @@ void FingerprintFPC2532Component::update() {
   }
 }
 
-void FingerprintFPC2532Component::setup() { this->fpc_hal_init(); }
+void FingerprintFPC2532Component::setup() {
+  this->fpc_hal_init();
+  fpc_cmd_status_request();
+}
 
 /*
 ------------------------
@@ -186,6 +190,76 @@ const char *fpc_result_to_string(fpc::fpc_result_t result) {
     default:
       return "Unknown Error";
   }
+}
+/* Command Requests */
+
+/**
+ * @brief Creates a CMD Packet and transfers it on active interface.
+ *
+ * Creates a CMD Frame Header and adds the command data to it.
+ *
+ * @param cmd Command Header with payload.
+ *
+ * @return Result Code
+ */
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_send_request(fpc::fpc_cmd_hdr_t *cmd, size_t size) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_frame_hdr_t frame = {0};
+
+  if (!cmd) {
+    ESP_LOGE(TAG, "Invalid command");
+    result = FPC_RESULT_INVALID_PARAM;
+  }
+
+  if (result == FPC_RESULT_OK) {
+    frame.version = FPC_FRAME_PROTOCOL_VERSION;
+    frame.type = FPC_FRAME_TYPE_CMD_REQUEST;
+    frame.flags = FPC_FRAME_FLAG_SENDER_HOST;
+    frame.payload_size = (uint16_t) size;
+
+    /* Send frame header. */
+    result = this->fpc_hal_tx((uint8_t *) &frame, sizeof(fpc::fpc_frame_hdr_t));
+    ESP_LOGI(TAG, "frame header sent: version=%02X, flags=%02X, type=%02X, payload_size=%" PRIu32, frame.version,
+             frame.flags, frame.type, frame.payload_size);
+  }
+
+  if (result == FPC_RESULT_OK) {
+    /* Send payload. */
+    result = this->fpc_hal_tx((uint8_t *) cmd, size);
+    ESP_LOGI(TAG, "command payload sent");
+  }
+
+  // Wait for response using cached loop start time
+  // const uint32_t start = App.get_loop_component_start_time();
+  const uint32_t start = millis();
+  const uint32_t timeout_ms = 100;
+  if (result == FPC_RESULT_OK) {
+    while (!available()) {
+      // if (App.get_loop_component_start_time() - start > timeout_ms) {
+      if (millis() - start > timeout_ms) {
+        ESP_LOGE(TAG, "full packet added in buffer but no answer from sensor available (timeout)");
+        return FPC_RESULT_TIMEOUT;
+      }
+      delay(1);
+    }
+    ESP_LOGI(TAG, "full packet sent and answer from sensor available");
+    result = FPC_RESULT_OK;
+  }
+  return result;
+}
+
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_status_request(void) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_hdr_t cmd;
+
+  /* Status Command Request has no payload */
+  cmd.cmd_id = CMD_STATUS;
+  cmd.type = FPC_FRAME_TYPE_CMD_REQUEST;
+
+  ESP_LOGI(TAG, ">>> CMD_STATUS");
+  result = this->FingerprintFPC2532Component::fpc_send_request(&cmd, sizeof(fpc::fpc_cmd_hdr_t));
+
+  return result;
 }
 
 /* Command Responses / Events */
@@ -351,6 +425,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_hal_tx(uint8_t *data, std::si
   //  break;
   // }
   this->write_array(data, len);
+  delay(1);
   return FPC_RESULT_OK;  // doesn't guarantee array was actually sent: no timeout handling here
 }
 fpc::fpc_result_t FingerprintFPC2532Component::fpc_hal_rx(uint8_t *data, std::size_t len) {
