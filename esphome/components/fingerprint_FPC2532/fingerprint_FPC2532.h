@@ -38,7 +38,8 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   } fpc_cmd_callbacks_t;
 
  protected:
-  uint32_t start_{0};  // per debug
+  uint32_t start_{0};      // per debug
+  bool LED_state_{false};  // LED
   bool get_parameters_();
   void sensor_wakeup_();
   void sensor_sleep_();

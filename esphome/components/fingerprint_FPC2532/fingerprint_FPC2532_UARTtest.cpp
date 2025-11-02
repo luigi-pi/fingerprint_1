@@ -11,10 +11,12 @@ namespace fingerprint_FPC2532 {
 static const char *const TAG = "fingerprint_FPC2532";
 
 void FingerprintFPC2532Component::update() {
+  digitalWrite(2, LED_state_ ? HIGH : LOW);
   if (millis() - start_ > 1000) {
     ESP_LOGI(TAG, "manda il comando status");
     fpc_cmd_status_request();
     start_ = millis();
+    LED_state_ = !LED_state_;
   }
   fpc::fpc_result_t result;
   size_t n = this->available();
@@ -34,6 +36,8 @@ void FingerprintFPC2532Component::setup() {
   this->fpc_hal_init();
   fpc_cmd_status_request();
   start_ = millis();
+  pinMode(2, OUTPUT);
+  LED_state_ = true;
 }
 
 /*
