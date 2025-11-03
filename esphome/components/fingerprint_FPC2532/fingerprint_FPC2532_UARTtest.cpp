@@ -274,6 +274,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_host_sample_handle_rx_data(vo
   result = this->fpc_hal_rx((uint8_t *) &frame_hdr, sizeof(fpc::fpc_frame_hdr_t));
 
   if (result == FPC_RESULT_OK) {
+    ESP_LOGE(TAG, "Sanity check started");
     /* Sanity Check */
     if (frame_hdr.version != FPC_FRAME_PROTOCOL_VERSION || ((frame_hdr.flags & FPC_FRAME_FLAG_SENDER_FW_APP) == 0) ||
         (frame_hdr.type != FPC_FRAME_TYPE_CMD_RESPONSE && frame_hdr.type != FPC_FRAME_TYPE_CMD_EVENT)) {
