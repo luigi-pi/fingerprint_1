@@ -12,7 +12,7 @@ static const char *const TAG = "fingerprint_FPC2532";
 
 void FingerprintFPC2532Component::update() {
   digitalWrite(2, LED_state_ ? HIGH : LOW);
-  ESP_LOGI(TAG, "stato pin RST_PIN_: %d", digitalRead(RST_PIN_));
+  // ESP_LOGI(TAG, "stato pin RST_PIN_: %d", digitalRead(RST_PIN_));
   if (millis() - start_ > 1000) {
     ESP_LOGI(TAG, "manda il comando status");
     fpc_cmd_status_request();
@@ -80,6 +80,30 @@ const char *get_event_str_(uint16_t evt) {
       return "Evt.ImageCaptured";
     case EVENT_CMD_FAILED:
       return "Evt.Failure";
+  }
+  return "Evt.Unknown";
+}
+
+const char *get_state_str_(uint16_t state) {
+  switch (state) {
+    case STATE_APP_FW_READY:
+      return "Sensor Ready";
+    case STATE_CAPTURE:
+      return "Capturing";
+    case STATE_IMAGE_AVAILABLE:
+      return "Image Available";
+    case STATE_DATA_TRANSFER:
+      return "Data Transfer";
+    case STATE_FINGER_DOWN:
+      return "Finger Down";
+    case STATE_SYS_ERROR:
+      return "System Error";
+    case STATE_ENROLL:
+      return "Enroll mode";
+    case STATE_IDENTIFY:
+      return "Identification mode";
+    case STATE_NAVIGATION:
+      return "Navigation mode";
   }
   return "Evt.Unknown";
 }
@@ -275,7 +299,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_host_sample_handle_rx_data(vo
   result = this->fpc_hal_rx((uint8_t *) &frame_hdr, sizeof(fpc::fpc_frame_hdr_t));
 
   if (result == FPC_RESULT_OK) {
-    ESP_LOGE(TAG, "Sanity check started");
+    ESP_LOGI(TAG, "Sanity check started");
     /* Sanity Check */
     if (frame_hdr.version != FPC_FRAME_PROTOCOL_VERSION || ((frame_hdr.flags & FPC_FRAME_FLAG_SENDER_FW_APP) == 0) ||
         (frame_hdr.type != FPC_FRAME_TYPE_CMD_RESPONSE && frame_hdr.type != FPC_FRAME_TYPE_CMD_EVENT)) {
@@ -393,8 +417,8 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
 
   if (result == FPC_RESULT_OK) {
     ESP_LOGI(TAG, "CMD_STATUS.event = %s (%04X)", get_event_str_(status->event), status->event);
-    ESP_LOGI(TAG, "CMD_STATUS.state = %04X", status->state);
-    ESP_LOGI(TAG, "CMD_STATUS.error = %d", status->app_fail_code);
+    ESP_LOGI(TAG, "CMD_STATUS.state = %s (%04X)", get_state_str_(status->state), status->state);
+    ESP_LOGI(TAG, "CMD_STATUS.error = %s (%d)", fpc_result_to_string(status->app_fail_code), status->app_fail_code);
     if (this->status_sensor_ != nullptr) {
       this->status_sensor_->publish_state(((uint16_t) status->state));
     }
