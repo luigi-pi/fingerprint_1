@@ -419,7 +419,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
     ESP_LOGI(TAG, "CMD_STATUS.state = %s (%04X)", get_state_str_(status->state), status->state);
     ESP_LOGI(TAG, "CMD_STATUS.error = %s (%d)", fpc_result_to_string(status->app_fail_code), status->app_fail_code);
     if (this->status_sensor_ != nullptr) {
-      this->status_sensor_->publish_state(get_state_str_(status->state));
+      this->status_sensor_->publish_state(uint16_t(status->state));
     }
   }
   // modify if callbacks are needed for these events
