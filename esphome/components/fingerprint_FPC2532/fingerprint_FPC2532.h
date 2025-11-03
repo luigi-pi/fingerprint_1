@@ -40,15 +40,20 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
  protected:
   uint32_t start_{0};      // per debug
   bool LED_state_{false};  // LED
-  bool get_parameters_();
-  void sensor_wakeup_();
-  void sensor_sleep_();
+  // bool get_parameters_();
+  // void sensor_wakeup_();
+  // void sensor_sleep_();
   const uint8_t RST_PIN_ = 26;  // RST_N pin -evaluate if add it on init_py to set via yaml
 
-  GPIOPin *sensing_pin_{nullptr};
-  GPIOPin *sensor_power_pin_{nullptr};
-  uint32_t last_transfer_ms_ = 0;
+  // GPIOPin *sensing_pin_{nullptr};
+  // GPIOPin *sensor_power_pin_{nullptr};
+  // uint32_t last_transfer_ms_ = 0;
   sensor::Sensor *status_sensor_{nullptr};
+
+  //--- State Machine Functions/declarations ---
+  const uint8_t MAX_NUMBER_OF_TEMPLATES = 30;
+  void process_state();
+
   //--- HOST functions ---
   /**
    * @brief Callback functions for command responses (optional).
