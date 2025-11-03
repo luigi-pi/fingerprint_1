@@ -3,6 +3,7 @@
 #include "esphome/core/component.h"
 #include "esphome/core/automation.h"
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/uart/uart.h"
 
@@ -22,7 +23,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
 
   void set_sensing_pin(GPIOPin *sensing_pin) { this->sensing_pin_ = sensing_pin; }
   void set_sensor_power_pin(GPIOPin *sensor_power_pin) { this->sensor_power_pin_ = sensor_power_pin; }
-  void set_status_sensor(sensor::Sensor *status_sensor) { this->status_sensor_ = status_sensor; }
+  void set_status_sensor(text_sensor::TextSensor *status_sensor) { this->status_sensor_ = status_sensor; }
 
   typedef struct {
     void (*on_error)(uint16_t error);
@@ -48,7 +49,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   GPIOPin *sensing_pin_{nullptr};
   GPIOPin *sensor_power_pin_{nullptr};
   uint32_t last_transfer_ms_ = 0;
-  sensor::Sensor *status_sensor_{nullptr};
+  text_sensor::TextSensor *status_sensor_{nullptr};
   //--- HOST functions ---
   /**
    * @brief Callback functions for command responses (optional).

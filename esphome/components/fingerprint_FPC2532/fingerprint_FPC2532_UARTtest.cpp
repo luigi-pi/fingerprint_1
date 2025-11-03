@@ -14,7 +14,6 @@ void FingerprintFPC2532Component::update() {
   digitalWrite(2, LED_state_ ? HIGH : LOW);
   // ESP_LOGI(TAG, "stato pin RST_PIN_: %d", digitalRead(RST_PIN_));
   if (millis() - start_ > 1000) {
-    ESP_LOGI(TAG, "manda il comando status");
     fpc_cmd_status_request();
     start_ = millis();
     LED_state_ = !LED_state_;
@@ -22,14 +21,14 @@ void FingerprintFPC2532Component::update() {
   fpc::fpc_result_t result;
   size_t n = this->available();
   if (n) {
-    ESP_LOGI(TAG, "number of bytes available to read: %d", n);
+    ESP_LOGD(TAG, "number of bytes available to read: %d", n);
     result = fpc_host_sample_handle_rx_data();
     if (result != FPC_RESULT_OK) {
       ESP_LOGE(TAG, "Failed to handle RX data, error %d", result);
       fpc_hal_delay_ms(10);
     }
   } else {
-    ESP_LOGI(TAG, "No data available");
+    ESP_LOGD(TAG, "No data available");
   }
 }
 
@@ -263,12 +262,12 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_send_request(fpc::fpc_cmd_hdr
     while (!available()) {
       // if (App.get_loop_component_start_time() - start > timeout_ms) {
       if (millis() - start > timeout_ms) {
-        ESP_LOGE(TAG, "full packet added in buffer but no answer from sensor available (timeout)");
+        ESP_LOGE(TAG, "no feedback from sensor available (timeout)");
         return FPC_RESULT_TIMEOUT;
       }
       delay(1);
     }
-    ESP_LOGI(TAG, "full packet sent and answer from sensor available");
+    ESP_LOGI(TAG, "packet sent and sensor feedback available");
     result = FPC_RESULT_OK;
   }
   return result;
@@ -282,7 +281,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_status_request(void) {
   cmd.cmd_id = CMD_STATUS;
   cmd.type = FPC_FRAME_TYPE_CMD_REQUEST;
 
-  ESP_LOGI(TAG, ">>> CMD_STATUS");
+  ESP_LOGI(TAG, ">>> Command Status Request");
   result = this->FingerprintFPC2532Component::fpc_send_request(&cmd, sizeof(fpc::fpc_cmd_hdr_t));
 
   return result;
@@ -400,8 +399,8 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd(uint8_t *frame_payload,
 fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr_t *cmd_hdr, std::size_t size) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_status_response_t *status;
-
   status = (fpc::fpc_cmd_status_response_t *) cmd_hdr;
+  ESP_LOGI(TAG, "<<< Command Status Response");
 
   if (!status) {
     ESP_LOGE(TAG, "CMD_STATUS: Invalid parameter");
@@ -420,9 +419,8 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
     ESP_LOGI(TAG, "CMD_STATUS.state = %s (%04X)", get_state_str_(status->state), status->state);
     ESP_LOGI(TAG, "CMD_STATUS.error = %s (%d)", fpc_result_to_string(status->app_fail_code), status->app_fail_code);
     if (this->status_sensor_ != nullptr) {
-      this->status_sensor_->publish_state(((uint16_t) status->state));
+      this->status_sensor_->publish_state(get_state_str_(status->state));
     }
-    // additional handling of status error or status event
   }
   // modify if callbacks are needed for these events
   /*

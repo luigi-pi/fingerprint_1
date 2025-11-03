@@ -26,7 +26,7 @@ from esphome.const import (
 
 CODEOWNERS = ["@OnFreund", "@loongyh", "@alexborro"]
 DEPENDENCIES = ["uart"]
-AUTO_LOAD = ["binary_sensor", "sensor"]
+AUTO_LOAD = ["binary_sensor", "sensor", "text_sensor"]
 MULTI_CONF = True
 
 CONF_FINGERPRINT_FPC2532_ID = "fingerprint_FPC2532_id"
@@ -283,7 +283,9 @@ async def fingerprint_FPC2532_enroll_to_code(config, action_id, template_arg, ar
         }
     ),
 )
-async def fingerprint_FPC2532_cancel_enroll_to_code(config, action_id, template_arg, args):
+async def fingerprint_FPC2532_cancel_enroll_to_code(
+    config, action_id, template_arg, args
+):
     var = cg.new_Pvariable(action_id, template_arg)
     await cg.register_parented(var, config[CONF_ID])
     return var
@@ -338,7 +340,9 @@ FINGERPRINT__LED_CONTROL_ACTION_SCHEMA = cv.maybe_simple_value(
     LEDControlAction,
     FINGERPRINT__LED_CONTROL_ACTION_SCHEMA,
 )
-async def fingerprint_FPC2532_led_control_to_code(config, action_id, template_arg, args):
+async def fingerprint_FPC2532_led_control_to_code(
+    config, action_id, template_arg, args
+):
     var = cg.new_Pvariable(action_id, template_arg)
     await cg.register_parented(var, config[CONF_ID])
 

@@ -55,7 +55,8 @@ repos:
     hooks:
       - id: pylint
         name: pylint
-        entry: python3 script/run-in-env.py pylint
+        entry: python script/run-in-env.py pylint
+        args: ["--python-executable=python"]
         language: system
         types: [python]
       - id: clang-tidy-hash
