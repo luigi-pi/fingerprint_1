@@ -10,46 +10,6 @@ namespace fingerprint_FPC2532 {
 
 static const char *const TAG = "fingerprint_FPC2532";
 
-/** Command callback functions. */
-FingerprintFPC2532Component::fpc_cmd_callbacks_t cmd_callbacks;
-
-void FingerprintFPC2532Component::on_error(uint16_t error) {
-  ESP_LOGI(TAG, "Got error %d.\n", error);
-  // quit = 1;
-}
-
-void FingerprintFPC2532Component::on_status(uint16_t event, uint16_t state) {
-  if (state & STATE_APP_FW_READY) {
-    this->device_ready = true;
-  }
-  this->device_state = state;
-}
-
-void FingerprintFPC2532Component::on_version(char *version) {
-  ESP_LOGI(TAG, "Got version: %s", version);
-  this->version_read = true;
-}
-
-void FingerprintFPC2532Component::on_enroll(uint8_t feedback, uint8_t samples_remaining) {
-  ESP_LOGI(TAG, "Enroll samples remaining: %d, feedback: %s (%d)", samples_remaining,
-           get_enroll_feedback_str_(feedback), feedback);
-}
-
-void FingerprintFPC2532Component::on_identify(int is_match, uint16_t id) {
-  if (is_match) {
-    ESP_LOGI(TAG, "Identify match on id %d", id);
-  } else {
-    ESP_LOGI(TAG, "Identify no match");
-  }
-}
-
-void FingerprintFPC2532Component::on_list_templates(int num_templates, uint16_t *template_ids) {
-  ESP_LOGI(TAG, "Found %d template(s) on device", num_templates);
-
-  this->list_templates_done = true;
-  this->n_templates_on_device = num_templates;
-}
-
 /*Helper functions*/
 
 static const char *get_id_type_str_(uint16_t id_type) {
@@ -242,6 +202,46 @@ static const char *app_state_wait_str_(uint16_t app_state) {
       return "wait to Delete Templates";
   }
   return "app state Unknown";
+}
+
+/** Command callback functions. */
+FingerprintFPC2532Component::fpc_cmd_callbacks_t cmd_callbacks;
+
+void FingerprintFPC2532Component::on_error(uint16_t error) {
+  ESP_LOGI(TAG, "Got error %d.\n", error);
+  // quit = 1;
+}
+
+void FingerprintFPC2532Component::on_status(uint16_t event, uint16_t state) {
+  if (state & STATE_APP_FW_READY) {
+    this->device_ready = true;
+  }
+  this->device_state = state;
+}
+
+void FingerprintFPC2532Component::on_version(char *version) {
+  ESP_LOGI(TAG, "Got version: %s", version);
+  this->version_read = true;
+}
+
+void FingerprintFPC2532Component::on_enroll(uint8_t feedback, uint8_t samples_remaining) {
+  ESP_LOGI(TAG, "Enroll samples remaining: %d, feedback: %s (%d)", samples_remaining,
+           get_enroll_feedback_str_(feedback), feedback);
+}
+
+void FingerprintFPC2532Component::on_identify(int is_match, uint16_t id) {
+  if (is_match) {
+    ESP_LOGI(TAG, "Identify match on id %d", id);
+  } else {
+    ESP_LOGI(TAG, "Identify no match");
+  }
+}
+
+void FingerprintFPC2532Component::on_list_templates(int num_templates, uint16_t *template_ids) {
+  ESP_LOGI(TAG, "Found %d template(s) on device", num_templates);
+
+  this->list_templates_done = true;
+  this->n_templates_on_device = num_templates;
 }
 
 void FingerprintFPC2532Component::update() {
