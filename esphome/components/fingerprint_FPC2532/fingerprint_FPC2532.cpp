@@ -281,7 +281,8 @@ void FingerprintFPC2532Component::setup() {
   list_templates_done = false;
   uint16_t device_state = 0;
   uint8_t n_templates_on_device = 0;
-  // fpc_cmd_status_request();
+  // cmd_callbacks.on_status = on_status;
+  //  fpc_cmd_status_request();
 }
 
 /*
@@ -295,28 +296,28 @@ void FingerprintFPC2532Component::process_state(void) {
 
   switch (app_state) {
     case APP_STATE_WAIT_READY:
-      if (device_ready) {
+      if (this->device_ready) {
         next_state = APP_STATE_WAIT_VERSION;
         this->fpc_cmd_version_request();
       }
       break;
     case APP_STATE_WAIT_VERSION:
-      if (version_read) {
+      if (this->version_read) {
         next_state = APP_STATE_WAIT_LIST_TEMPLATES;
         this->fpc_cmd_list_templates_request();
       }
       break;
     case APP_STATE_WAIT_LIST_TEMPLATES:
-      if (list_templates_done) {
-        if (n_templates_on_device == MAX_NUMBER_OF_TEMPLATES) {
+      if (this->list_templates_done) {
+        if (this->n_templates_on_device == MAX_NUMBER_OF_TEMPLATES) {
           ESP_LOGW(TAG, "No space for new fingerprints. Consider deleting unused templates.");
           fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
           ESP_LOGI(TAG, "Starting identify");
           next_state = APP_STATE_WAIT_IDENTIFY;
           this->fpc_cmd_identify_request(&id_type, 0);
-        } else if (n_templates_on_device == 0) {
+        } else if (this->n_templates_on_device == 0) {
           fpc::fpc_id_type_t id_type = {ID_TYPE_GENERATE_NEW, 0};
-          n_templates_on_device++;
+          this->n_templates_on_device++;
           ESP_LOGI(TAG, "Starting enroll");
           next_state = APP_STATE_WAIT_ENROLL;
           this->fpc_cmd_enroll_request(&id_type);
@@ -330,7 +331,7 @@ void FingerprintFPC2532Component::process_state(void) {
       }
       break;
     case APP_STATE_WAIT_ENROLL:
-      if ((device_state & STATE_ENROLL) == 0) {
+      if ((this->device_state & STATE_ENROLL) == 0) {
         ESP_LOGI(TAG, "Finger Enrollment done.");
         fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
         ESP_LOGI(TAG, "Starting identify");
@@ -339,14 +340,14 @@ void FingerprintFPC2532Component::process_state(void) {
       }
       break;
     case APP_STATE_WAIT_IDENTIFY:
-      if ((device_state & STATE_IDENTIFY) == 0) {
+      if ((this->device_state & STATE_IDENTIFY) == 0) {
         fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
         this->fpc_hal_delay_ms(20);
         this->fpc_cmd_identify_request(&id_type, 0);
       }
       break;
     case APP_STATE_WAIT_ABORT:
-      if ((device_state & (STATE_ENROLL | STATE_IDENTIFY)) == 0) {
+      if ((this->device_state & (STATE_ENROLL | STATE_IDENTIFY)) == 0) {
         ESP_LOGI(TAG, "Operation aborted");
         fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
         ESP_LOGI(TAG, "Starting identify");
@@ -735,6 +736,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
     if (this->status_sensor_ != nullptr) {
       this->status_sensor_->publish_state(uint16_t(status->state));
     }
+    this->device_ready = true;
   }
   // modify if callbacks are needed for these events
 
@@ -777,6 +779,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_version(fpc::fpc_cmd_hd
     ESP_LOGI(TAG, "CMD_VERSION.fuse_level = %d", ver->fw_fuse_level);
     ESP_LOGI(TAG, "CMD_VERSION.version_str_len = %d", ver->version_str_len);
     ESP_LOGI(TAG, "CMD_VERSION.version = %s", ver->version_str);
+    this->version_read = true;
   }
 
   if (cmd_callbacks.on_version) {
@@ -878,6 +881,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_list_templates(fpc::fpc
     for (i = 0; i < list->number_of_templates; i++) {
       ESP_LOGI(TAG, "CMD_LIST_TEMPLATES.id = %d", list->template_id_list[i]);
     }
+    list_templates_done = true;
   }
 
   if (cmd_callbacks.on_list_templates) {
