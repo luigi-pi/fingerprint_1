@@ -65,8 +65,9 @@ static const char *get_state_str_(uint16_t state) {
       return "Identification mode";
     case STATE_NAVIGATION:
       return "Navigation mode";
+    default:
+      return "Unknown_state";
   }
-  return "Evt.Unknown_state";
 }
 static const char *get_enroll_feedback_str_(uint8_t feedback) {
   switch (feedback) {
@@ -253,9 +254,9 @@ void FingerprintFPC2532Component::update() {
   }*/
   // if (!device_ready){  fpc_cmd_status_request();}
   ESP_LOGD(TAG,
-           "app_state= %s (%d), device state= %s, device_ready?= %d, callback onstatus exists?= %d, "
+           "app_state= %s (%d), device state= %s (%d), device_ready?= %d, callback onstatus exists?= %d, "
            "n_templates_on_device = %d",
-           app_state_wait_str_(app_state), app_state, get_state_str_(device_state), device_ready,
+           app_state_wait_str_(app_state), app_state, get_state_str_(device_state), device_state, device_ready,
            cmd_callbacks.on_status != nullptr, n_templates_on_device);
   fpc::fpc_result_t result;
   // fpc_cmd_status_request();
@@ -321,7 +322,6 @@ void FingerprintFPC2532Component::process_state(void) {
           this->fpc_cmd_identify_request(&id_type, 0);
         } else if (this->n_templates_on_device == 0) {
           fpc::fpc_id_type_t id_type = {ID_TYPE_GENERATE_NEW, 0};
-          this->n_templates_on_device++;
           ESP_LOGI(TAG, "Starting enroll");
           next_state = APP_STATE_WAIT_ENROLL;
           this->fpc_cmd_enroll_request(&id_type);
@@ -337,6 +337,7 @@ void FingerprintFPC2532Component::process_state(void) {
     case APP_STATE_WAIT_ENROLL:
       if ((this->device_state & STATE_ENROLL) == 0) {
         ESP_LOGI(TAG, "Finger Enrollment done.");
+        this->n_templates_on_device++;
         fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
         ESP_LOGI(TAG, "Starting identify");
         next_state = APP_STATE_WAIT_IDENTIFY;
