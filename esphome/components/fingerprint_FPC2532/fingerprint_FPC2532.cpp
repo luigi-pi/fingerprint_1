@@ -43,7 +43,7 @@ static const char *get_event_str_(uint16_t evt) {
     case EVENT_CMD_FAILED:
       return "Evt.Failure";
   }
-  return "Evt.Unknown";
+  return "Evt.Unknown_event";
 }
 static const char *get_state_str_(uint16_t state) {
   switch (state) {
@@ -66,7 +66,7 @@ static const char *get_state_str_(uint16_t state) {
     case STATE_NAVIGATION:
       return "Navigation mode";
   }
-  return "Evt.Unknown";
+  return "Evt.Unknown_state";
 }
 static const char *get_enroll_feedback_str_(uint8_t feedback) {
   switch (feedback) {
@@ -252,8 +252,11 @@ void FingerprintFPC2532Component::update() {
     LED_state_ = !LED_state_;
   }*/
   // if (!device_ready){  fpc_cmd_status_request();}
-  ESP_LOGD(TAG, "app_state= %s (%d), device_ready?= %d, callback onstatus exists?= %d", app_state_wait_str_(app_state),
-           app_state, device_ready, cmd_callbacks.on_status != nullptr);
+  ESP_LOGD(TAG,
+           "app_state= %s (%d), device state= %s, device_ready?= %d, callback onstatus exists?= %d, "
+           "n_templates_on_device = %d",
+           app_state_wait_str_(app_state), app_state, get_state_str_(device_state), device_ready,
+           cmd_callbacks.on_status != nullptr, n_templates_on_device);
   fpc::fpc_result_t result;
   // fpc_cmd_status_request();
   size_t n = this->available();
@@ -261,7 +264,7 @@ void FingerprintFPC2532Component::update() {
     ESP_LOGD(TAG, "number of bytes available to read: %d", n);
     result = fpc_host_sample_handle_rx_data();
     if (result != FPC_RESULT_OK && result != FPC_PENDING_OPERATION) {
-      ESP_LOGE(TAG, "Bad incoming data (%d). Wait and try again in some sec", result);
+      ESP_LOGE(TAG, "Bad incoming data (%d). Wait and try again", result);
       fpc_hal_delay_ms(10);
     }
   } else {
@@ -738,6 +741,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
       this->status_sensor_->publish_state(uint16_t(status->state));
     }
     this->device_ready = true;
+    this->device_state = status->state;
   }
   // modify if callbacks are needed for these events
 
