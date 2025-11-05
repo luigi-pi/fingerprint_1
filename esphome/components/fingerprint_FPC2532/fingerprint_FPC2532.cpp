@@ -288,7 +288,7 @@ void FingerprintFPC2532Component::update() {
            "app_state= %s (%d), device state= %s (%d), device_ready?= %d, version read?= %d, list_templates_done?= %d, "
            "callback onstatus exists?= %d, "
            "n_templates_on_device = %d",
-           app_state_wait_str_(app_state), app_state, get_state_str_(device_state), device_state, device_ready,
+           app_state_wait_str_(app_state), app_state, get_state_str_(device_state).c_str(), device_state, device_ready,
            version_read, list_templates_done, cmd_callbacks.on_status != nullptr, n_templates_on_device);
   fpc::fpc_result_t result;
   // fpc_cmd_status_request();
