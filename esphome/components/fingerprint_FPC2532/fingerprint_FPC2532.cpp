@@ -184,6 +184,25 @@ static const char *fpc_result_to_string(fpc::fpc_result_t result) {
       return "Unknown Error";
   }
 }
+static const char *app_state_wait_str_(uint16_t app_state) {
+  switch (app_state) {
+    case APP_STATE_WAIT_READY:
+      return "wait to be Ready";
+    case APP_STATE_WAIT_VERSION:
+      return "wait to read Version";
+    case APP_STATE_WAIT_LIST_TEMPLATES:
+      return "wait to list Templates";
+    case APP_STATE_WAIT_ENROLL:
+      return "wait for Enroll";
+    case APP_STATE_WAIT_IDENTIFY:
+      return "wait for Identify";
+    case APP_STATE_WAIT_ABORT:
+      return "wait for Abort";
+    case APP_STATE_WAIT_DELETE_TEMPLATES:
+      return "wait to Delete Templates";
+  }
+  return "app state Unknown";
+}
 
 void FingerprintFPC2532Component::update() {
   /*digitalWrite(2, LED_state_ ? HIGH : LOW);
@@ -192,12 +211,12 @@ void FingerprintFPC2532Component::update() {
     start_ = millis();
     LED_state_ = !LED_state_;
   }*/
-  ESP_LOGD(TAG, "app_state=%d", app_state);
+  ESP_LOGD(TAG, "app_state= %s (%d)", app_state_wait_str_(app_state), app_state);
   fpc::fpc_result_t result;
-  // fpc_cmd_status_request();
+  fpc_cmd_status_request();
   size_t n = this->available();
   if (n) {
-    // ESP_LOGD(TAG, "number of bytes available to read: %d", n);
+    ESP_LOGD(TAG, "number of bytes available to read: %d", n);
     result = fpc_host_sample_handle_rx_data();
     if (result != FPC_RESULT_OK && result != FPC_PENDING_OPERATION) {
       ESP_LOGE(TAG, "Bad incoming data (%d). Wait and try again in some sec", result);
@@ -221,7 +240,7 @@ void FingerprintFPC2532Component::setup() {
   list_templates_done = false;
   uint16_t device_state = 0;
   uint8_t n_templates_on_device = 0;
-  fpc_cmd_status_request();
+  // fpc_cmd_status_request();
 }
 
 /*
