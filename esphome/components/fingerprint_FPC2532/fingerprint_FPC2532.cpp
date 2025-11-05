@@ -18,6 +18,7 @@ void FingerprintFPC2532Component::update() {
     LED_state_ = !LED_state_;
   }*/
   fpc::fpc_result_t result;
+  // fpc_cmd_status_request();
   size_t n = this->available();
   if (n) {
     // ESP_LOGD(TAG, "number of bytes available to read: %d", n);
@@ -724,13 +725,13 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
     }
   }
   // modify if callbacks are needed for these events
-  /*
-    if ((status->app_fail_code != 0) && cmd_callbacks.on_error) {
-      cmd_callbacks.on_error(status->app_fail_code);
-    } else if (cmd_callbacks.on_status) {
-      cmd_callbacks.on_status(status->event, status->state);
-    }
-  */
+
+  if ((status->app_fail_code != 0) && cmd_callbacks.on_error) {
+    cmd_callbacks.on_error(status->app_fail_code);
+  } else if (cmd_callbacks.on_status) {
+    cmd_callbacks.on_status(status->event, status->state);
+  }
+
   return result;
 }
 
