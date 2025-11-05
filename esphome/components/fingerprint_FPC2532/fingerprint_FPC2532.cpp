@@ -211,7 +211,8 @@ void FingerprintFPC2532Component::update() {
     start_ = millis();
     LED_state_ = !LED_state_;
   }*/
-  ESP_LOGD(TAG, "app_state= %s (%d)", app_state_wait_str_(app_state), app_state);
+  ESP_LOGD(TAG, "app_state= %s (%d), device_ready?= %d, callback onstatus exists?= %d", app_state_wait_str_(app_state),
+           app_state, device_ready, cmd_callbacks.on_status != nullptr);
   fpc::fpc_result_t result;
   // fpc_cmd_status_request();
   size_t n = this->available();
@@ -220,7 +221,7 @@ void FingerprintFPC2532Component::update() {
     result = fpc_host_sample_handle_rx_data();
     if (result != FPC_RESULT_OK && result != FPC_PENDING_OPERATION) {
       ESP_LOGE(TAG, "Bad incoming data (%d). Wait and try again in some sec", result);
-      fpc_hal_delay_ms(20);
+      fpc_hal_delay_ms(10);
     }
   } else {
     ESP_LOGD(TAG, "No data available");
