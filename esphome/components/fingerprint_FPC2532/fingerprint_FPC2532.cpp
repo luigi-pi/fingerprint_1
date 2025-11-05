@@ -3,6 +3,7 @@
 //#include "esphome.h"
 #include <cinttypes>
 #include <vector>
+#include <string>
 #include "fpc_api.h"
 
 namespace esphome {
@@ -45,6 +46,35 @@ static const char *get_event_str_(uint16_t evt) {
   }
   return "Evt.Unknown_event";
 }
+
+static std::string get_state_str_(uint16_t state) {
+  std::string s;
+
+  if (state & STATE_APP_FW_READY)
+    s += "App FW Ready | ";
+  if (state & STATE_CAPTURE)
+    s += "Capturing | ";
+  if (state & STATE_IMAGE_AVAILABLE)
+    s += "Image Available | ";
+  if (state & STATE_DATA_TRANSFER)
+    s += "Data Transfer | ";
+  if (state & STATE_FINGER_DOWN)
+    s += "Finger Down | ";
+  if (state & STATE_SYS_ERROR)
+    s += "System Error | ";
+  if (state & STATE_ENROLL)
+    s += "Enroll mode | ";
+  if (state & STATE_IDENTIFY)
+    s += "Identification mode | ";
+  if (state & STATE_NAVIGATION)
+    s += "Navigation mode | ";
+  if (s.empty())
+    s = "Unknown_state";
+
+  return s;
+}
+
+/*
 static const char *get_state_str_(uint16_t state) {
   switch (state) {
     case STATE_APP_FW_READY:
@@ -69,6 +99,7 @@ static const char *get_state_str_(uint16_t state) {
       return "Unknown_state";
   }
 }
+*/
 static const char *get_enroll_feedback_str_(uint8_t feedback) {
   switch (feedback) {
     case ENROLL_FEEDBACK_DONE:
@@ -254,10 +285,11 @@ void FingerprintFPC2532Component::update() {
   }*/
   // if (!device_ready){  fpc_cmd_status_request();}
   ESP_LOGD(TAG,
-           "app_state= %s (%d), device state= %s (%d), device_ready?= %d, callback onstatus exists?= %d, "
+           "app_state= %s (%d), device state= %s (%d), device_ready?= %d, version read?= %d, list_templates_done?= %d, "
+           "callback onstatus exists?= %d, "
            "n_templates_on_device = %d",
            app_state_wait_str_(app_state), app_state, get_state_str_(device_state), device_state, device_ready,
-           cmd_callbacks.on_status != nullptr, n_templates_on_device);
+           version_read, list_templates_done, cmd_callbacks.on_status != nullptr, n_templates_on_device);
   fpc::fpc_result_t result;
   // fpc_cmd_status_request();
   size_t n = this->available();
