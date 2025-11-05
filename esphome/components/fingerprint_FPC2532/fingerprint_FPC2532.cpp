@@ -17,6 +17,7 @@ void FingerprintFPC2532Component::update() {
     start_ = millis();
     LED_state_ = !LED_state_;
   }*/
+  ESP_LOGD(TAG, "app_state=%d", app_state);
   fpc::fpc_result_t result;
   // fpc_cmd_status_request();
   size_t n = this->available();
