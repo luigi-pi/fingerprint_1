@@ -43,10 +43,10 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   // bool get_parameters_();
   // void sensor_wakeup_();
   // void sensor_sleep_();
-  const uint8_t RST_PIN_ = 26;  // RST_N pin -evaluate if add it on init_py to set via yaml
-
-  // GPIOPin *sensing_pin_{nullptr};
-  // GPIOPin *sensor_power_pin_{nullptr};
+  const uint8_t RST_PIN_ =
+      26;  // RST_N pin -evaluate if add it on init_py to set via yaml like sensing_pin and sensor_power_pin
+  GPIOPin *sensing_pin_{nullptr};
+  GPIOPin *sensor_power_pin_{nullptr};
   // uint32_t last_transfer_ms_ = 0;
   sensor::Sensor *status_sensor_{nullptr};
 
@@ -61,11 +61,25 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   // send
   fpc::fpc_result_t fpc_send_request(fpc::fpc_cmd_hdr_t *cmd, size_t size);
   fpc::fpc_result_t fpc_cmd_status_request(void);
-
+  fpc::fpc_result_t fpc_cmd_version_request(void);
+  fpc::fpc_result_t fpc_cmd_enroll_request(fpc::fpc_id_type_t *id);
+  fpc::fpc_result_t fpc_cmd_identify_request(fpc::fpc_id_type_t *id, uint16_t tag);
+  fpc::fpc_result_t fpc_cmd_abort(void);
+  fpc::fpc_result_t fpc_cmd_list_templates_request(void);
+  fpc::fpc_result_t fpc_cmd_delete_template_request(fpc::fpc_id_type_t *id);
+  fpc::fpc_result_t fpc_cmd_reset_request(void);
+  fpc::fpc_result_t fpc_cmd_system_config_set_request(fpc::fpc_system_config_t *cfg);
+  fpc::fpc_result_t fpc_cmd_system_config_get_request(uint8_t type);
   // receive
   fpc::fpc_result_t fpc_host_sample_handle_rx_data(void);
   fpc::fpc_result_t parse_cmd(uint8_t *frame_payload, std::size_t size);
   fpc::fpc_result_t parse_cmd_status(fpc::fpc_cmd_hdr_t *cmd_hdr, std::size_t size);
+
+  fpc::fpc_result_t parse_cmd_version(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size);
+  fpc::fpc_result_t parse_cmd_enroll_status(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size);
+  fpc::fpc_result_t parse_cmd_identify(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size);
+  fpc::fpc_result_t parse_cmd_list_templates(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size);
+  fpc::fpc_result_t parse_cmd_get_system_config(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size);
 
   //--- HAL functions ---
   fpc::fpc_result_t fpc_hal_init(void);

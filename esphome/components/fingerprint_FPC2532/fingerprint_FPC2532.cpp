@@ -20,7 +20,7 @@ void FingerprintFPC2532Component::update() {
   fpc::fpc_result_t result;
   size_t n = this->available();
   if (n) {
-    ESP_LOGD(TAG, "number of bytes available to read: %d", n);
+    // ESP_LOGD(TAG, "number of bytes available to read: %d", n);
     result = fpc_host_sample_handle_rx_data();
     if (result != FPC_RESULT_OK && result != FPC_PENDING_OPERATION) {
       ESP_LOGE(TAG, "Bad incoming data (%d). Wait and try again in some sec", result);
@@ -149,8 +149,47 @@ void FingerprintFPC2532Component::process_state(void) {
 HOST FUNCTIONS DEFINITONS
 ------------------------
 */
-/** Optional command callback functions. */
+/** Command callback functions. */
 FingerprintFPC2532Component::fpc_cmd_callbacks_t cmd_callbacks;
+
+static void on_error(uint16_t error) {
+  ESP_LOGI(TAG, "Got error %d.\n", error);
+  // quit = 1;
+}
+
+static void on_status(uint16_t event, uint16_t state) {
+  if (state & STATE_APP_FW_READY) {
+    device_ready = 1;
+  }
+  device_state = state;
+}
+
+static void on_version(char *version) {
+  ESP_LOGI(TAG, "Got version: %s", version);
+  version_read = 1;
+}
+
+static void on_enroll(uint8_t feedback, uint8_t samples_remaining) {
+  const char *get_enroll_feedback_str_(uint8_t feedback);
+  ESP_LOGI(TAG, "Enroll samples remaining: %d, feedback: %s (%d)", samples_remaining,
+           get_enroll_feedback_str_(feedback), feedback);
+}
+
+static void on_identify(int is_match, uint16_t id) {
+  if (is_match) {
+    ESP_LOGI(TAG, "Identify match on id %d", id);
+  } else {
+    ESP_LOGI(TAG, "Identify no match");
+  }
+}
+
+static void on_list_templates(int num_templates, uint16_t *template_ids) {
+  ESP_LOGI(TAG, "Found %d template(s) on device", num_templates);
+
+  list_templates_done = 1;
+  n_templates_on_device = num_templates;
+}
+
 /*Helper functions*/
 
 const char *get_id_type_str_(uint16_t id_type) {
@@ -163,10 +202,10 @@ const char *get_id_type_str_(uint16_t id_type) {
       return "ID.Specified";
     case ID_TYPE_GENERATE_NEW:
       return "ID.Generate";
+    default:
+      return "ID.Unknown";
   }
-  return "ID.Unknown";
 }
-
 const char *get_event_str_(uint16_t evt) {
   switch (evt) {
     case EVENT_NONE:
@@ -186,7 +225,6 @@ const char *get_event_str_(uint16_t evt) {
   }
   return "Evt.Unknown";
 }
-
 const char *get_state_str_(uint16_t state) {
   switch (state) {
     case STATE_APP_FW_READY:
@@ -210,7 +248,6 @@ const char *get_state_str_(uint16_t state) {
   }
   return "Evt.Unknown";
 }
-
 const char *get_enroll_feedback_str_(uint8_t feedback) {
   switch (feedback) {
     case ENROLL_FEEDBACK_DONE:
@@ -232,7 +269,6 @@ const char *get_enroll_feedback_str_(uint8_t feedback) {
   }
   return "Unknown";
 }
-
 const char *get_gesture_str_(uint8_t gesture) {
   switch (gesture) {
     case CMD_NAV_EVENT_NONE:
@@ -254,7 +290,6 @@ const char *get_gesture_str_(uint8_t gesture) {
   }
   return "Unknown";
 }
-
 const char *fpc_result_to_string(fpc::fpc_result_t result) {
   switch (result) {
     // Information / Success
@@ -376,7 +411,6 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_send_request(fpc::fpc_cmd_hdr
   }
   return result;
 }
-
 fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_status_request(void) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_hdr_t cmd;
@@ -386,7 +420,170 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_status_request(void) {
   cmd.type = FPC_FRAME_TYPE_CMD_REQUEST;
 
   ESP_LOGI(TAG, ">>> Command Status Request");
-  result = this->FingerprintFPC2532Component::fpc_send_request(&cmd, sizeof(fpc::fpc_cmd_hdr_t));
+  result = this->fpc_send_request(&cmd, sizeof(fpc::fpc_cmd_hdr_t));
+
+  return result;
+}
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_version_request(void) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_hdr_t cmd;
+
+  /* Version Command Request has no payload */
+  cmd.cmd_id = CMD_VERSION;
+  cmd.type = FPC_FRAME_TYPE_CMD_REQUEST;
+
+  ESP_LOGI(TAG, ">>> CMD_VERSION");
+  result = this->fpc_send_request(&cmd, sizeof(fpc::fpc_cmd_hdr_t));
+
+  return result;
+}
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_enroll_request(fpc::fpc_id_type_t *id) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_enroll_request_t cmd_req;
+
+  if (id->type != ID_TYPE_SPECIFIED && id->type != ID_TYPE_GENERATE_NEW) {
+    ESP_LOGE(TAG, "Enroll Request: Invalid parameter");
+    result = FPC_RESULT_INVALID_PARAM;
+  }
+
+  if (result == FPC_RESULT_OK) {
+    cmd_req.cmd.cmd_id = CMD_ENROLL;
+    cmd_req.cmd.type = FPC_FRAME_TYPE_CMD_REQUEST;
+
+    cmd_req.tpl_id.type = id->type;
+    cmd_req.tpl_id.id = id->id;
+
+    ESP_LOGI(TAG, ">>> CMD_ENROLL (id.type=%s, id=%d)", get_id_type_str_(id->type), id->id);
+
+    result = fpc_send_request(&cmd_req.cmd, sizeof(fpc::fpc_cmd_enroll_request_t));
+  }
+
+  return result;
+}
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_identify_request(fpc::fpc_id_type_t *id, uint16_t tag) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_identify_request_t cmd_req;
+
+  if (id->type != ID_TYPE_SPECIFIED && id->type != ID_TYPE_ALL) {
+    ESP_LOGE(TAG, "Identify: Invalid parameter");
+    result = FPC_RESULT_INVALID_PARAM;
+  }
+
+  if (result == FPC_RESULT_OK) {
+    cmd_req.cmd.cmd_id = CMD_IDENTIFY;
+    cmd_req.cmd.type = FPC_FRAME_TYPE_CMD_REQUEST;
+
+    cmd_req.tpl_id.type = id->type;
+    cmd_req.tpl_id.id = id->id;
+    cmd_req.tag = tag;
+
+    ESP_LOGI(TAG, ">>> CMD_IDENTIFY (tag=%d, id.type=%s, id=%d)", tag, get_id_type_str_(id->type), id->id);
+
+    result = fpc_send_request(&cmd_req.cmd, sizeof(fpc::fpc_cmd_identify_request_t));
+  }
+
+  return result;
+}
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_abort(void) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_hdr_t cmd;
+
+  /* Abort Command Request has no payload */
+  cmd.cmd_id = CMD_ABORT;
+  cmd.type = FPC_FRAME_TYPE_CMD_REQUEST;
+
+  ESP_LOGI(TAG, ">>> CMD_ABORT");
+  result = fpc_send_request(&cmd, sizeof(fpc::fpc_cmd_hdr_t));
+
+  return result;
+}
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_list_templates_request(void) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_hdr_t cmd;
+
+  /* List Template Command Request has no payload */
+  cmd.cmd_id = CMD_LIST_TEMPLATES;
+  cmd.type = FPC_FRAME_TYPE_CMD_REQUEST;
+
+  ESP_LOGI(TAG, ">>> CMD_LIST_TEMPLATES");
+  result = fpc_send_request(&cmd, sizeof(fpc::fpc_cmd_hdr_t));
+
+  return result;
+}
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_delete_template_request(fpc::fpc_id_type_t *id) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_template_delete_request_t cmd_req;
+
+  if (id->type != ID_TYPE_SPECIFIED && id->type != ID_TYPE_ALL) {
+    ESP_LOGE(TAG, "Delete Tpl: Invalid parameter");
+    result = FPC_RESULT_INVALID_PARAM;
+  }
+
+  if (result == FPC_RESULT_OK) {
+    cmd_req.cmd.cmd_id = CMD_DELETE_TEMPLATE;
+    cmd_req.cmd.type = FPC_FRAME_TYPE_CMD_REQUEST;
+
+    cmd_req.tpl_id.type = id->type;
+    cmd_req.tpl_id.id = id->id;
+
+    ESP_LOGI(TAG, ">>> CMD_DELETE_TEMPLATE (id.type=%s, id=%d)", get_id_type_str_(id->type), id->id);
+
+    result = fpc_send_request(&cmd_req.cmd, sizeof(fpc::fpc_cmd_template_delete_request_t));
+  }
+
+  return result;
+}
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_reset_request(void) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_hdr_t cmd;
+
+  /* Reset Command Request has no payload */
+  cmd.cmd_id = CMD_RESET;
+  cmd.type = FPC_FRAME_TYPE_CMD_REQUEST;
+
+  ESP_LOGI(TAG, ">>> CMD_RESET");
+  result = fpc_send_request(&cmd, sizeof(fpc::fpc_cmd_hdr_t));
+
+  return result;
+}
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_system_config_set_request(fpc::fpc_system_config_t *cfg) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_set_config_request_t cmd_req;
+
+  if (cfg == NULL) {
+    ESP_LOGE(TAG, "Set System Config: Invalid parameter");
+    result = FPC_RESULT_INVALID_PARAM;
+  }
+
+  if (result == FPC_RESULT_OK) {
+    cmd_req.cmd.cmd_id = CMD_SET_SYSTEM_CONFIG;
+    cmd_req.cmd.type = FPC_FRAME_TYPE_CMD_REQUEST;
+
+    cmd_req.cfg = *cfg;
+
+    ESP_LOGI(TAG, ">>> CMD_SET_SYSTEM_CONFIG");
+    result = fpc_send_request(&cmd_req.cmd, sizeof(fpc::fpc_cmd_set_config_request_t));
+  }
+
+  return result;
+}
+fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_system_config_get_request(uint8_t type) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_get_config_request_t cmd_req;
+
+  if (type > FPC_SYS_CFG_TYPE_CUSTOM) {
+    ESP_LOGE(TAG, "Get System Config: Invalid parameter");
+    result = FPC_RESULT_INVALID_PARAM;
+  }
+
+  if (result == FPC_RESULT_OK) {
+    cmd_req.cmd.cmd_id = CMD_GET_SYSTEM_CONFIG;
+    cmd_req.cmd.type = FPC_FRAME_TYPE_CMD_REQUEST;
+    cmd_req.config_type = type;
+
+    ESP_LOGI(TAG, ">>> CMD_SET_SYSTEM_CONFIG (type=%d)", type);
+    result = fpc_send_request(&cmd_req.cmd, sizeof(fpc::fpc_cmd_get_config_request_t));
+  }
 
   return result;
 }
@@ -441,7 +638,6 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_host_sample_handle_rx_data(vo
 
   return result;
 }
-
 fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd(uint8_t *frame_payload, std::size_t size) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_hdr_t *cmd_hdr;
@@ -465,7 +661,6 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd(uint8_t *frame_payload,
       case CMD_STATUS:
         return parse_cmd_status(cmd_hdr, size);
         break;
-      /*
       case CMD_VERSION:
         return parse_cmd_version(cmd_hdr, size);
         break;
@@ -478,15 +673,18 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd(uint8_t *frame_payload,
       case CMD_LIST_TEMPLATES:
         return parse_cmd_list_templates(cmd_hdr, size);
         break;
+      /*
       case CMD_NAVIGATION:
         return parse_cmd_navigation_event(cmd_hdr, size);
         break;
       case CMD_GPIO_CONTROL:
         return parse_cmd_gpio_control(cmd_hdr, size);
         break;
+      */
       case CMD_GET_SYSTEM_CONFIG:
         return parse_cmd_get_system_config(cmd_hdr, size);
         break;
+      /*
       case CMD_BIST:
         return parse_cmd_bist(cmd_hdr, size);
         break;
@@ -499,7 +697,6 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd(uint8_t *frame_payload,
 
   return result;
 }
-
 fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr_t *cmd_hdr, std::size_t size) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_status_response_t *status;
@@ -534,6 +731,187 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
       cmd_callbacks.on_status(status->event, status->state);
     }
   */
+  return result;
+}
+
+fpc::fpc_result_t parse_cmd_version(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_version_response_t *ver;
+  size_t full_size = 0;
+
+  ver = (fpc::fpc_cmd_version_response_t *) cmd_hdr;
+
+  if (!ver) {
+    ESP_LOGE(TAG, "CMD_VERSION: Invalid parameter");
+    result = FPC_RESULT_INVALID_PARAM;
+  }
+
+  if (result == FPC_RESULT_OK) {
+    /* The full size of the command must include the length of the
+      version string (unset array) */
+    full_size = sizeof(fpc::fpc_cmd_version_response_t) + ver->version_str_len;
+
+    if (size != full_size) {
+      ESP_LOGE(TAG, "CMD_VERSION invalid size (%d vs %d)", size, full_size);
+      result = FPC_RESULT_INVALID_PARAM;
+    }
+  }
+
+  if (result == FPC_RESULT_OK) {
+    ESP_LOGI(TAG, "CMD_VERSION.fw_id = %d", ver->fw_id);
+    ESP_LOGI(TAG, "CMD_VERSION.unique_id = %08X %08X %08X", ver->mcu_unique_id[0], ver->mcu_unique_id[1],
+             ver->mcu_unique_id[2]);
+    ESP_LOGI(TAG, "CMD_VERSION.fuse_level = %d", ver->fw_fuse_level);
+    ESP_LOGI(TAG, "CMD_VERSION.version_str_len = %d", ver->version_str_len);
+    ESP_LOGI(TAG, "CMD_VERSION.version = %s", ver->version_str);
+  }
+
+  if (cmd_callbacks.on_version) {
+    cmd_callbacks.on_version(ver->version_str);
+  }
+
+  return result;
+}
+
+fpc::fpc_result_t parse_cmd_enroll_status(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_enroll_status_response_t *status;
+
+  status = (fpc::fpc_cmd_enroll_status_response_t *) cmd_hdr;
+
+  if (!status) {
+    ESP_LOGE(TAG, "CMD_ENROLL: Invalid parameter");
+    result = FPC_RESULT_INVALID_PARAM;
+  }
+
+  if (result == FPC_RESULT_OK) {
+    if (size != sizeof(fpc::fpc_cmd_enroll_status_response_t)) {
+      ESP_LOGE(TAG, "CMD_ENROLL invalid size (%d vs %d)", size, sizeof(fpc::fpc_cmd_enroll_status_response_t));
+      result = FPC_RESULT_INVALID_PARAM;
+    }
+  }
+
+  if (result == FPC_RESULT_OK) {
+    ESP_LOGI(TAG, "CMD_ENROLL.id = %d", status->id);
+    ESP_LOGI(TAG, "CMD_ENROLL.feedback = %s", get_enroll_feedback_str_(status->feedback));
+    ESP_LOGI(TAG, "CMD_ENROLL.samples_remaining = %d", status->samples_remaining);
+  }
+
+  if (cmd_callbacks.on_enroll) {
+    cmd_callbacks.on_enroll(status->feedback, status->samples_remaining);
+  }
+
+  return result;
+}
+
+fpc::fpc_result_t parse_cmd_identify(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_identify_status_response_t *id_res;
+
+  id_res = (fpc::fpc_cmd_identify_status_response_t *) cmd_hdr;
+
+  if (!id_res) {
+    ESP_LOGE(TAG, "CMD_IDENTIFY: Invalid parameter");
+    result = FPC_RESULT_INVALID_PARAM;
+  }
+
+  if (result == FPC_RESULT_OK) {
+    if (size != sizeof(fpc::fpc_cmd_identify_status_response_t)) {
+      ESP_LOGE(TAG, "CMD_IDENTIFY invalid size (%d vs %d)", size, sizeof(fpc::fpc_cmd_identify_status_response_t));
+      result = FPC_RESULT_INVALID_PARAM;
+    }
+  }
+
+  if (result == FPC_RESULT_OK) {
+    ESP_LOGI(TAG, "CMD_IDENTIFY.result = %s (0x%04X)", (id_res->match == IDENTIFY_RESULT_MATCH) ? "MATCH" : "No Match",
+             id_res->match);
+    ESP_LOGI(TAG, "CMD_IDENTIFY.id_type = %s", get_id_type_str_(id_res->tpl_id.type));
+    ESP_LOGI(TAG, "CMD_IDENTIFY.id = %d", id_res->tpl_id.id);
+    ESP_LOGI(TAG, "CMD_IDENTIFY.tag = %d", id_res->tag);
+  }
+
+  if (cmd_callbacks.on_identify) {
+    cmd_callbacks.on_identify(id_res->match == IDENTIFY_RESULT_MATCH, id_res->tpl_id.id);
+  }
+
+  return result;
+}
+
+fpc::fpc_result_t parse_cmd_list_templates(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_template_info_response_t *list;
+  size_t total_pl_size = 0;
+  uint16_t i;
+
+  list = (fpc::fpc_cmd_template_info_response_t *) cmd_hdr;
+
+  if (!list) {
+    ESP_LOGE(TAG, "CMD_LIST_TEMPLATES: Invalid parameter");
+    result = FPC_RESULT_INVALID_PARAM;
+  }
+
+  if (result == FPC_RESULT_OK) {
+    total_pl_size = sizeof(fpc::fpc_cmd_template_info_response_t) + (sizeof(uint16_t) * list->number_of_templates);
+
+    if (size != total_pl_size) {
+      ESP_LOGE(TAG, "CMD_LIST_TEMPLATES invalid size (%d vs %d)", size, total_pl_size);
+      result = FPC_RESULT_INVALID_PARAM;
+    }
+  }
+
+  if (result == FPC_RESULT_OK) {
+    ESP_LOGI(TAG, "CMD_LIST_TEMPLATES.nbr_of_tpls = %d", list->number_of_templates);
+
+    for (i = 0; i < list->number_of_templates; i++) {
+      ESP_LOGI(TAG, "CMD_LIST_TEMPLATES.id = %d", list->template_id_list[i]);
+    }
+  }
+
+  if (cmd_callbacks.on_list_templates) {
+    cmd_callbacks.on_list_templates(list->number_of_templates, list->template_id_list);
+  }
+
+  return result;
+}
+
+fpc::fpc_result_t parse_cmd_get_system_config(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
+  fpc::fpc_result_t result = FPC_RESULT_OK;
+  fpc::fpc_cmd_get_config_response_t *cmd_cfg = (fpc::fpc_cmd_get_config_response_t *) cmd_hdr;
+
+  if (!cmd_cfg) {
+    ESP_LOGE(TAG, "CMD_GET_SYSTEM_CONFIG: Invalid parameter");
+    result = FPC_RESULT_INVALID_PARAM;
+  }
+
+  if (result == FPC_RESULT_OK) {
+    if (size < sizeof(fpc::fpc_cmd_get_config_response_t)) {
+      ESP_LOGE(TAG, "CMD_GET_SYSTEM_CONFIG invalid size (%d vs %d)", size, sizeof(fpc::fpc_cmd_get_config_response_t));
+      result = FPC_RESULT_INVALID_PARAM;
+    }
+  }
+
+  if (result == FPC_RESULT_OK) {
+    ESP_LOGI(TAG, "%s Config:", cmd_cfg->config_type == 0 ? "Default" : "Custom");
+    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.ver = %d", cmd_cfg->cfg.version);
+    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.sys_flags = %08X:", cmd_cfg->cfg.sys_flags);
+    if (cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT)
+      ESP_LOGI(TAG, " - CFG_SYS_FLAG_STATUS_EVT_AT_BOOT");
+    if (cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IN_STOP_MODE)
+      ESP_LOGI(TAG, " - CFG_SYS_FLAG_UART_IN_STOP_MODE");
+    if (cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IRQ_BEFORE_TX)
+      ESP_LOGI(TAG, " - CFG_SYS_FLAG_UART_IRQ_BEFORE_TX");
+    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.uart_irq_dly = %d ms", cmd_cfg->cfg.uart_delay_before_irq_ms);
+    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.uart_baudrate_idx = %d", cmd_cfg->cfg.uart_baudrate);
+    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.finger_scan_intv = %d ms", cmd_cfg->cfg.finger_scan_interval_ms);
+    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.idfy_max_consecutive_fails = %d", cmd_cfg->cfg.idfy_max_consecutive_fails);
+    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.idfy_lockout_time_s = %d s", cmd_cfg->cfg.idfy_lockout_time_s);
+    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.idle_time_before_sleep_ms = %d ms", cmd_cfg->cfg.idle_time_before_sleep_ms);
+  }
+
+  if (cmd_callbacks.on_system_config_get) {
+    cmd_callbacks.on_system_config_get(&cmd_cfg->cfg);
+  }
+
   return result;
 }
 
