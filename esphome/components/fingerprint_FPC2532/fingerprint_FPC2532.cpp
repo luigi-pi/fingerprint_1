@@ -213,7 +213,7 @@ void FingerprintFPC2532Component::update() {
   }*/
   ESP_LOGD(TAG, "app_state= %s (%d)", app_state_wait_str_(app_state), app_state);
   fpc::fpc_result_t result;
-  fpc_cmd_status_request();
+  // fpc_cmd_status_request();
   size_t n = this->available();
   if (n) {
     ESP_LOGD(TAG, "number of bytes available to read: %d", n);
