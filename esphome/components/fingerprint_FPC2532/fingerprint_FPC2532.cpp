@@ -734,7 +734,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
   return result;
 }
 
-fpc::fpc_result_t parse_cmd_version(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
+fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_version(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_version_response_t *ver;
   size_t full_size = 0;
@@ -773,7 +773,7 @@ fpc::fpc_result_t parse_cmd_version(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
   return result;
 }
 
-fpc::fpc_result_t parse_cmd_enroll_status(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
+fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_enroll_status(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_enroll_status_response_t *status;
 
@@ -804,7 +804,7 @@ fpc::fpc_result_t parse_cmd_enroll_status(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t si
   return result;
 }
 
-fpc::fpc_result_t parse_cmd_identify(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
+fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_identify(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_identify_status_response_t *id_res;
 
@@ -837,7 +837,7 @@ fpc::fpc_result_t parse_cmd_identify(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
   return result;
 }
 
-fpc::fpc_result_t parse_cmd_list_templates(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
+fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_list_templates(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_template_info_response_t *list;
   size_t total_pl_size = 0;
@@ -874,7 +874,7 @@ fpc::fpc_result_t parse_cmd_list_templates(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t s
   return result;
 }
 
-fpc::fpc_result_t parse_cmd_get_system_config(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
+fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_get_system_config(fpc::fpc_cmd_hdr_t *cmd_hdr, size_t size) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_get_config_response_t *cmd_cfg = (fpc::fpc_cmd_get_config_response_t *) cmd_hdr;
 
