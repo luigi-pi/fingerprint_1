@@ -37,10 +37,16 @@ void FingerprintFPC2532Component::update() {
 void FingerprintFPC2532Component::setup() {
   this->hal_reset_device();
   this->fpc_hal_init();
-  // fpc_cmd_status_request();
   // start_ = millis();
   // LED_state_ = true;
   // pinMode(2, OUTPUT);  // blue builtin LED
+  app_state_t app_state = APP_STATE_WAIT_READY;
+  device_ready = false;
+  version_read = false;
+  list_templates_done = false;
+  uint16_t device_state = 0;
+  uint8_t n_templates_on_device = 0;
+  fpc_cmd_status_request();
 }
 
 /*
@@ -48,21 +54,6 @@ void FingerprintFPC2532Component::setup() {
 STATE MACHINE PROCESSING
 ------------------------
 */
-typedef enum {
-  APP_STATE_WAIT_READY = 0,
-  APP_STATE_WAIT_VERSION,
-  APP_STATE_WAIT_LIST_TEMPLATES,
-  APP_STATE_WAIT_ENROLL,
-  APP_STATE_WAIT_IDENTIFY,
-  APP_STATE_WAIT_ABORT,
-  APP_STATE_WAIT_DELETE_TEMPLATES
-} app_state_t;
-app_state_t app_state = APP_STATE_WAIT_READY;
-int device_ready = 0;
-int version_read = 0;
-int list_templates_done = 0;
-uint16_t device_state = 0;
-int n_templates_on_device = 0;
 
 void FingerprintFPC2532Component::process_state(void) {
   app_state_t next_state = app_state;
@@ -154,30 +145,30 @@ HOST FUNCTIONS DEFINITONS
 /** Command callback functions. */
 FingerprintFPC2532Component::fpc_cmd_callbacks_t cmd_callbacks;
 
-static void on_error(uint16_t error) {
+void FingerprintFPC2532Component::on_error(uint16_t error) {
   ESP_LOGI(TAG, "Got error %d.\n", error);
   // quit = 1;
 }
 
-static void on_status(uint16_t event, uint16_t state) {
+void FingerprintFPC2532Component::on_status(uint16_t event, uint16_t state) {
   if (state & STATE_APP_FW_READY) {
-    device_ready = 1;
+    this->device_ready = true;
   }
-  device_state = state;
+  this->device_state = state;
 }
 
-static void on_version(char *version) {
+void FingerprintFPC2532Component::on_version(char *version) {
   ESP_LOGI(TAG, "Got version: %s", version);
-  version_read = 1;
+  this->version_read = true;
 }
 
-static void on_enroll(uint8_t feedback, uint8_t samples_remaining) {
+void FingerprintFPC2532Component::on_enroll(uint8_t feedback, uint8_t samples_remaining) {
   const char *get_enroll_feedback_str_(uint8_t feedback);
   ESP_LOGI(TAG, "Enroll samples remaining: %d, feedback: %s (%d)", samples_remaining,
            get_enroll_feedback_str_(feedback), feedback);
 }
 
-static void on_identify(int is_match, uint16_t id) {
+void FingerprintFPC2532Component::on_identify(int is_match, uint16_t id) {
   if (is_match) {
     ESP_LOGI(TAG, "Identify match on id %d", id);
   } else {
@@ -185,16 +176,16 @@ static void on_identify(int is_match, uint16_t id) {
   }
 }
 
-static void on_list_templates(int num_templates, uint16_t *template_ids) {
+void FingerprintFPC2532Component::on_list_templates(int num_templates, uint16_t *template_ids) {
   ESP_LOGI(TAG, "Found %d template(s) on device", num_templates);
 
-  list_templates_done = 1;
-  n_templates_on_device = num_templates;
+  this->list_templates_done = true;
+  this->n_templates_on_device = num_templates;
 }
 
 /*Helper functions*/
 
-const char *get_id_type_str_(uint16_t id_type) {
+static const char *get_id_type_str_(uint16_t id_type) {
   switch (id_type) {
     case ID_TYPE_NONE:
       return "ID.None";
@@ -208,7 +199,7 @@ const char *get_id_type_str_(uint16_t id_type) {
       return "ID.Unknown";
   }
 }
-const char *get_event_str_(uint16_t evt) {
+static const char *get_event_str_(uint16_t evt) {
   switch (evt) {
     case EVENT_NONE:
       return "Evt.None";
@@ -227,7 +218,7 @@ const char *get_event_str_(uint16_t evt) {
   }
   return "Evt.Unknown";
 }
-const char *get_state_str_(uint16_t state) {
+static const char *get_state_str_(uint16_t state) {
   switch (state) {
     case STATE_APP_FW_READY:
       return "Sensor Ready";
@@ -250,7 +241,7 @@ const char *get_state_str_(uint16_t state) {
   }
   return "Evt.Unknown";
 }
-const char *get_enroll_feedback_str_(uint8_t feedback) {
+static const char *get_enroll_feedback_str_(uint8_t feedback) {
   switch (feedback) {
     case ENROLL_FEEDBACK_DONE:
       return "Done";
@@ -271,7 +262,7 @@ const char *get_enroll_feedback_str_(uint8_t feedback) {
   }
   return "Unknown";
 }
-const char *get_gesture_str_(uint8_t gesture) {
+static const char *get_gesture_str_(uint8_t gesture) {
   switch (gesture) {
     case CMD_NAV_EVENT_NONE:
       return "None";
@@ -292,7 +283,7 @@ const char *get_gesture_str_(uint8_t gesture) {
   }
   return "Unknown";
 }
-const char *fpc_result_to_string(fpc::fpc_result_t result) {
+static const char *fpc_result_to_string(fpc::fpc_result_t result) {
   switch (result) {
     // Information / Success
     case FPC_RESULT_OK:

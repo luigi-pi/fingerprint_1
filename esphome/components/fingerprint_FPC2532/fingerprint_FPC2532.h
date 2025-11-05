@@ -51,13 +51,26 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   sensor::Sensor *status_sensor_{nullptr};
 
   //--- State Machine Functions/declarations ---
-  const uint8_t MAX_NUMBER_OF_TEMPLATES = 30;
+  app_state_t app_state;
+  bool device_ready;
+  bool version_read;
+  bool list_templates_done;
+  uint16_t device_state;
+  uint8_t n_templates_on_device;
+
   void process_state();
 
   //--- HOST functions ---
   /**
    * @brief Callback functions for command responses (optional).
    */
+  void on_list_templates(int num_templates, uint16_t *template_ids);
+  void on_identify(int is_match, uint16_t id);
+  void on_enroll(uint8_t feedback, uint8_t samples_remaining);
+  void on_version(char *version);
+  void on_status(uint16_t event, uint16_t state);
+  void on_error(uint16_t error);
+
   // send
   fpc::fpc_result_t fpc_send_request(fpc::fpc_cmd_hdr_t *cmd, size_t size);
   fpc::fpc_result_t fpc_cmd_status_request(void);
@@ -89,5 +102,15 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void fpc_hal_delay_ms(uint32_t ms);
 };
 
+const uint8_t MAX_NUMBER_OF_TEMPLATES = 30;
+typedef enum {
+  APP_STATE_WAIT_READY = 0,
+  APP_STATE_WAIT_VERSION,
+  APP_STATE_WAIT_LIST_TEMPLATES,
+  APP_STATE_WAIT_ENROLL,
+  APP_STATE_WAIT_IDENTIFY,
+  APP_STATE_WAIT_ABORT,
+  APP_STATE_WAIT_DELETE_TEMPLATES
+} app_state_t;
 }  // namespace fingerprint_FPC2532
 }  // namespace esphome
