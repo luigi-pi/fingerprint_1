@@ -14,6 +14,17 @@
 namespace esphome {
 namespace fingerprint_FPC2532 {
 // using fpc::fpc_result_t; /* to avoid errors due to namespaces */
+const uint8_t MAX_NUMBER_OF_TEMPLATES = 30;
+typedef enum {
+  APP_STATE_WAIT_READY = 0,
+  APP_STATE_WAIT_VERSION,
+  APP_STATE_WAIT_LIST_TEMPLATES,
+  APP_STATE_WAIT_ENROLL,
+  APP_STATE_WAIT_IDENTIFY,
+  APP_STATE_WAIT_ABORT,
+  APP_STATE_WAIT_DELETE_TEMPLATES
+} app_state_t;
+
 class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDevice {
  public:
   void update() override;
@@ -102,15 +113,5 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void fpc_hal_delay_ms(uint32_t ms);
 };
 
-const uint8_t MAX_NUMBER_OF_TEMPLATES = 30;
-typedef enum {
-  APP_STATE_WAIT_READY = 0,
-  APP_STATE_WAIT_VERSION,
-  APP_STATE_WAIT_LIST_TEMPLATES,
-  APP_STATE_WAIT_ENROLL,
-  APP_STATE_WAIT_IDENTIFY,
-  APP_STATE_WAIT_ABORT,
-  APP_STATE_WAIT_DELETE_TEMPLATES
-} app_state_t;
 }  // namespace fingerprint_FPC2532
 }  // namespace esphome
