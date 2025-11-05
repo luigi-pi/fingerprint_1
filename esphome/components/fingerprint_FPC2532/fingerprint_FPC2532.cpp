@@ -920,6 +920,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_list_templates(fpc::fpc
       ESP_LOGI(TAG, "CMD_LIST_TEMPLATES.id = %d", list->template_id_list[i]);
     }
     list_templates_done = true;
+    n_templates_on_device = list->number_of_templates;
   }
 
   if (cmd_callbacks.on_list_templates) {
