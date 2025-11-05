@@ -251,6 +251,7 @@ void FingerprintFPC2532Component::update() {
     start_ = millis();
     LED_state_ = !LED_state_;
   }*/
+  // if (!device_ready){  fpc_cmd_status_request();}
   ESP_LOGD(TAG, "app_state= %s (%d), device_ready?= %d, callback onstatus exists?= %d", app_state_wait_str_(app_state),
            app_state, device_ready, cmd_callbacks.on_status != nullptr);
   fpc::fpc_result_t result;
@@ -282,7 +283,7 @@ void FingerprintFPC2532Component::setup() {
   uint16_t device_state = 0;
   uint8_t n_templates_on_device = 0;
   // cmd_callbacks.on_status = on_status;
-  //  fpc_cmd_status_request();
+  fpc_cmd_status_request();
 }
 
 /*
