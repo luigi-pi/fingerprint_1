@@ -50,6 +50,12 @@ static const char *get_event_str_(uint16_t evt) {
 static std::string get_state_str_(uint16_t state) {
   std::string s;
 
+  if (state & STATE_ENROLL)
+    s += "Enroll mode | ";
+  if (state & STATE_IDENTIFY)
+    s += "Identification mode | ";
+  if (state & STATE_NAVIGATION)
+    s += "Navigation mode | ";
   if (state & STATE_APP_FW_READY)
     s += "App FW Ready | ";
   if (state & STATE_CAPTURE)
@@ -62,12 +68,6 @@ static std::string get_state_str_(uint16_t state) {
     s += "Finger Down | ";
   if (state & STATE_SYS_ERROR)
     s += "System Error | ";
-  if (state & STATE_ENROLL)
-    s += "Enroll mode | ";
-  if (state & STATE_IDENTIFY)
-    s += "Identification mode | ";
-  if (state & STATE_NAVIGATION)
-    s += "Navigation mode | ";
   if (s.empty())
     s = "Unknown_state";
 
@@ -768,7 +768,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
 
   if (result == FPC_RESULT_OK) {
     ESP_LOGI(TAG, "CMD_STATUS.event = %s (%04X)", get_event_str_(status->event), status->event);
-    ESP_LOGI(TAG, "CMD_STATUS.state = %s (%04X)", get_state_str_(status->state), status->state);
+    ESP_LOGI(TAG, "CMD_STATUS.state = %s (%04X)", get_state_str_(status->state).c_str(), status->state);
     ESP_LOGI(TAG, "CMD_STATUS.error = %s (%d)", fpc_result_to_string(status->app_fail_code), status->app_fail_code);
     if (this->status_sensor_ != nullptr) {
       this->status_sensor_->publish_state(uint16_t(status->state));
