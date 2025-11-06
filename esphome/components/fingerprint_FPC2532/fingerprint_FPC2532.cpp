@@ -309,6 +309,7 @@ void FingerprintFPC2532Component::update() {
 void FingerprintFPC2532Component::setup() {
   this->hal_reset_device();
   this->fpc_hal_init();
+  fpc_cmd_abort();
   // start_ = millis();
   // LED_state_ = true;
   // pinMode(2, OUTPUT);  // blue builtin LED
