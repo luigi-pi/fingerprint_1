@@ -284,12 +284,13 @@ void FingerprintFPC2532Component::update() {
     LED_state_ = !LED_state_;
   }*/
   // if (!device_ready){  fpc_cmd_status_request();}
-  ESP_LOGD(TAG,
+  /*ESP_LOGD(TAG,
            "app_state= %s (%d), device state= %s (%d), device_ready?= %d, version read?= %d, list_templates_done?= %d, "
            "callback onstatus exists?= %d, "
            "n_templates_on_device = %d",
            app_state_wait_str_(app_state), app_state, get_state_str_(device_state).c_str(), device_state, device_ready,
            version_read, list_templates_done, cmd_callbacks.on_status != nullptr, n_templates_on_device);
+  */
   fpc::fpc_result_t result;
   // fpc_cmd_status_request();
   size_t n = this->available();
@@ -301,7 +302,7 @@ void FingerprintFPC2532Component::update() {
       fpc_hal_delay_ms(10);
     }
   } else {
-    ESP_LOGD(TAG, "No data available");
+    ESP_LOGVV(TAG, "No data available");
   }
   this->process_state();
 }
@@ -651,15 +652,15 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_host_sample_handle_rx_data(vo
   result = this->fpc_hal_rx((uint8_t *) &frame_hdr, sizeof(fpc::fpc_frame_hdr_t));
 
   if (result == FPC_RESULT_OK) {
-    ESP_LOGI(TAG, "Sanity check started");
+    ESP_LOGVV(TAG, "Sanity check started");
     /* Sanity Check */
     if (frame_hdr.version != FPC_FRAME_PROTOCOL_VERSION || ((frame_hdr.flags & FPC_FRAME_FLAG_SENDER_FW_APP) == 0) ||
         (frame_hdr.type != FPC_FRAME_TYPE_CMD_RESPONSE && frame_hdr.type != FPC_FRAME_TYPE_CMD_EVENT)) {
       ESP_LOGE(TAG, "Sanity check of rx data failed");
       result = FPC_RESULT_IO_BAD_DATA;
     } else {
-      ESP_LOGI(TAG, "Received Header frame: version=%02X, flags=%02X, type=%02X, payload_size=%" PRIu32,
-               frame_hdr.version, frame_hdr.flags, frame_hdr.type, frame_hdr.payload_size);
+      ESP_LOGVV(TAG, "Received Header frame: version=%02X, flags=%02X, type=%02X, payload_size=%" PRIu32,
+                frame_hdr.version, frame_hdr.flags, frame_hdr.type, frame_hdr.payload_size);
     }
   }
 
