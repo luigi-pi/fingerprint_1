@@ -28,5 +28,5 @@ async def to_code(config):
         if key not in config:
             continue
         conf = config[key]
-        sens = await text_sensor.new_sensor(conf)
+        sens = await text_sensor.new_text_sensor(conf)
         cg.add(getattr(hub, f"set_{key}_sensor")(sens))
