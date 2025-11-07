@@ -3,6 +3,7 @@
 #include "esphome/core/component.h"
 #include "esphome/core/automation.h"
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/uart/uart.h"
 
@@ -34,6 +35,9 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void set_sensing_pin(GPIOPin *sensing_pin) { this->sensing_pin_ = sensing_pin; }
   void set_sensor_power_pin(GPIOPin *sensor_power_pin) { this->sensor_power_pin_ = sensor_power_pin; }
   void set_status_sensor(sensor::Sensor *status_sensor) { this->status_sensor_ = status_sensor; }
+  void set_text_status_sensor(text_sensor::TextSensor *text_status_sensor) {
+    this->text_status_sensor_ = text_status_sensor;
+  }
   void set_fingerprint_count_sensor(sensor::Sensor *fingerprint_count_sensor) {
     this->fingerprint_count_sensor_ = fingerprint_count_sensor;
   }
@@ -79,6 +83,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   GPIOPin *sensor_power_pin_{nullptr};
   // uint32_t last_transfer_ms_ = 0;
   sensor::Sensor *status_sensor_{nullptr};
+  text_sensor::TextSensor *text_status_sensor_{nullptr};
   sensor::Sensor *fingerprint_count_sensor_{nullptr};
   // sensor::Sensor *capacity_sensor_{nullptr};
   // sensor::Sensor *security_level_sensor_{nullptr};
