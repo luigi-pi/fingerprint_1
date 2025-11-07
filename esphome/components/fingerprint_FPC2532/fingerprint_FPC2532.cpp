@@ -295,7 +295,7 @@ void FingerprintFPC2532Component::update() {
   // fpc_cmd_status_request();
   size_t n = this->available();
   if (n) {
-    ESP_LOGD(TAG, "number of bytes available to read: %d", n);
+    ESP_LOGVV(TAG, "number of bytes available to read: %d", n);
     result = fpc_host_sample_handle_rx_data();
     if (result != FPC_RESULT_OK && result != FPC_PENDING_OPERATION) {
       ESP_LOGE(TAG, "Bad incoming data (%d). Wait and try again", result);
