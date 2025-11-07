@@ -283,8 +283,8 @@ void FingerprintFPC2532Component::setup() {
   this->hal_reset_device();
   this->fpc_hal_init();
   fpc_cmd_abort();
-  // fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
-  // fpc_cmd_delete_template_request(&id_type);
+  fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
+  fpc_cmd_delete_template_request(&id_type);
   //  start_ = millis();
   //  LED_state_ = true;
   //  pinMode(2, OUTPUT);  // blue builtin LED
