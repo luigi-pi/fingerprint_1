@@ -750,6 +750,9 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
     if (this->status_sensor_ != nullptr) {
       this->status_sensor_->publish_state(uint16_t(status->state));
     }
+    if (this->text_status_sensor_ != nullptr) {
+      this->text_status_sensor_->publish_state(get_state_str_(status->state));
+    }
     this->device_ready = true;
     this->device_state = status->state;
   }
