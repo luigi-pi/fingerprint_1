@@ -294,6 +294,9 @@ void FingerprintFPC2532Component::setup() {
   list_templates_done = false;
   uint16_t device_state = 0;
   uint8_t n_templates_on_device = 0;
+  if (this->enrolling_binary_sensor_ != nullptr) {
+    this->enrolling_binary_sensor_->publish_state(false);
+  }
   // cmd_callbacks.on_status = on_status;
   fpc_cmd_status_request();
 }
