@@ -436,14 +436,14 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_send_request(fpc::fpc_cmd_hdr
 
     /* Send frame header. */
     result = this->fpc_hal_tx((uint8_t *) &frame, sizeof(fpc::fpc_frame_hdr_t));
-    ESP_LOGI(TAG, "frame header sent: version=%02X, flags=%02X, type=%02X, payload_size=%" PRIu32, frame.version,
-             frame.flags, frame.type, frame.payload_size);
+    ESP_LOGVV(TAG, "frame header sent: version=%02X, flags=%02X, type=%02X, payload_size=%" PRIu32, frame.version,
+              frame.flags, frame.type, frame.payload_size);
   }
 
   if (result == FPC_RESULT_OK) {
     /* Send payload. */
     result = this->fpc_hal_tx((uint8_t *) cmd, size);
-    ESP_LOGI(TAG, "command payload sent");
+    ESP_LOGVV(TAG, "command payload sent");
   }
 
   // Wait for response using cached loop start time
@@ -459,7 +459,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_send_request(fpc::fpc_cmd_hdr
       }
       delay(1);
     }
-    ESP_LOGI(TAG, "packet sent and sensor feedback available");
+    ESP_LOGVV(TAG, "packet sent and sensor feedback available");
     result = FPC_RESULT_OK;
   }
   return result;
