@@ -34,6 +34,25 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void set_sensing_pin(GPIOPin *sensing_pin) { this->sensing_pin_ = sensing_pin; }
   void set_sensor_power_pin(GPIOPin *sensor_power_pin) { this->sensor_power_pin_ = sensor_power_pin; }
   void set_status_sensor(sensor::Sensor *status_sensor) { this->status_sensor_ = status_sensor; }
+  void set_fingerprint_count_sensor(sensor::Sensor *fingerprint_count_sensor) {
+    this->fingerprint_count_sensor_ = fingerprint_count_sensor;
+  }
+  // void set_capacity_sensor(sensor::Sensor *capacity_sensor) { this->capacity_sensor_ = capacity_sensor; }
+  /*void set_security_level_sensor(sensor::Sensor *security_level_sensor) {
+    this->security_level_sensor_ = security_level_sensor;
+  }
+  */
+  void set_last_finger_id_sensor(sensor::Sensor *last_finger_id_sensor) {
+    this->last_finger_id_sensor_ = last_finger_id_sensor;
+  }
+  /*
+  void set_last_confidence_sensor(sensor::Sensor *last_confidence_sensor) {
+    this->last_confidence_sensor_ = last_confidence_sensor;
+  }
+  */
+  void set_enrolling_binary_sensor(binary_sensor::BinarySensor *enrolling_binary_sensor) {
+    this->enrolling_binary_sensor_ = enrolling_binary_sensor;
+  }
 
   typedef struct {
     void (*on_error)(uint16_t error);
@@ -60,7 +79,12 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   GPIOPin *sensor_power_pin_{nullptr};
   // uint32_t last_transfer_ms_ = 0;
   sensor::Sensor *status_sensor_{nullptr};
-
+  sensor::Sensor *fingerprint_count_sensor_{nullptr};
+  // sensor::Sensor *capacity_sensor_{nullptr};
+  // sensor::Sensor *security_level_sensor_{nullptr};
+  sensor::Sensor *last_finger_id_sensor_{nullptr};
+  // sensor::Sensor *last_confidence_sensor_{nullptr};
+  binary_sensor::BinarySensor *enrolling_binary_sensor_{nullptr};
   //--- State Machine Functions/declarations ---
   app_state_t app_state;
   bool device_ready;
