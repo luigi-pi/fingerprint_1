@@ -46,7 +46,6 @@ static const char *get_event_str_(uint16_t evt) {
   }
   return "Evt.Unknown_event";
 }
-
 static std::string get_state_str_(uint16_t state) {
   std::string s;
 
@@ -73,33 +72,6 @@ static std::string get_state_str_(uint16_t state) {
 
   return s;
 }
-
-/*
-static const char *get_state_str_(uint16_t state) {
-  switch (state) {
-    case STATE_APP_FW_READY:
-      return "Sensor Ready";
-    case STATE_CAPTURE:
-      return "Capturing";
-    case STATE_IMAGE_AVAILABLE:
-      return "Image Available";
-    case STATE_DATA_TRANSFER:
-      return "Data Transfer";
-    case STATE_FINGER_DOWN:
-      return "Finger Down";
-    case STATE_SYS_ERROR:
-      return "System Error";
-    case STATE_ENROLL:
-      return "Enroll mode";
-    case STATE_IDENTIFY:
-      return "Identification mode";
-    case STATE_NAVIGATION:
-      return "Navigation mode";
-    default:
-      return "Unknown_state";
-  }
-}
-*/
 static const char *get_enroll_feedback_str_(uint8_t feedback) {
   switch (feedback) {
     case ENROLL_FEEDBACK_DONE:
@@ -311,6 +283,8 @@ void FingerprintFPC2532Component::setup() {
   this->hal_reset_device();
   this->fpc_hal_init();
   fpc_cmd_abort();
+  fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
+  fpc_cmd_delete_template_request(&id_type);
   // start_ = millis();
   // LED_state_ = true;
   // pinMode(2, OUTPUT);  // blue builtin LED
