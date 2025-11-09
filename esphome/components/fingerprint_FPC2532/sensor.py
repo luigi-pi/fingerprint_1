@@ -9,7 +9,6 @@ from esphome.const import (
     CONF_NUM_SCANS,
     CONF_SECURITY_LEVEL,
     CONF_STATUS,
-    ENTITY_CATEGORY_CONFIG,
     ENTITY_CATEGORY_DIAGNOSTIC,
     ICON_ACCOUNT,
     ICON_ACCOUNT_CHECK,
@@ -47,17 +46,17 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_NUM_SCANS): sensor.sensor_schema(
             icon=ICON_DATABASE,
             accuracy_decimals=0,
-            entity_category=ENTITY_CATEGORY_CONFIG,
+            entity_category="",
         ),
         cv.Optional(CONF_ENROLLMENT_FEEDBACK): sensor.sensor_schema(
             icon=ICON_FEEDBACK,
             accuracy_decimals=0,
-            entity_category=ENTITY_CATEGORY_CONFIG,
+            entity_category="",
         ),
         cv.Optional(CONF_SECURITY_LEVEL): sensor.sensor_schema(
             icon=ICON_SECURITY,
             accuracy_decimals=0,
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            entity_category="",
         ),
         cv.Optional(CONF_LAST_FINGER_ID): sensor.sensor_schema(
             icon=ICON_ACCOUNT,
