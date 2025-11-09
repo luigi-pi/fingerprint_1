@@ -89,6 +89,9 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void add_on_finger_scan_matched_callback(std::function<void(uint16_t, uint16_t)> callback) {
     this->finger_scan_matched_callback_.add(std::move(callback));
   }
+  void add_on_finger_scan_unmatched_callback(std::function<void()> callback) {
+    this->finger_scan_unmatched_callback_.add(std::move(callback));
+  }
 
  protected:
   uint32_t start_{0};      // per debug
@@ -114,7 +117,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   binary_sensor::BinarySensor *enrolling_binary_sensor_{nullptr};
 
   CallbackManager<void(uint16_t, uint16_t)> finger_scan_matched_callback_;
-
+  CallbackManager<void()> finger_scan_unmatched_callback_;
   //--- State Machine Functions/declarations ---
   app_state_t app_state;
   bool device_ready;

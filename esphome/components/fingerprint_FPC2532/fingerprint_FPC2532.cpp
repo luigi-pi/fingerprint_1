@@ -753,6 +753,9 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
     if (this->text_status_sensor_ != nullptr) {
       this->text_status_sensor_->publish_state(get_state_str_(status->state));
     }
+    if (status->state & STATE_ENROLL) {
+      this->enrollment_feedback_->publish_state((uint8_t) 8);
+    }
     this->device_ready = true;
     this->device_state = status->state;
   }
@@ -894,7 +897,9 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_identify(fpc::fpc_cmd_h
   if (id_res->match == IDENTIFY_RESULT_MATCH) {
     this->finger_scan_matched_callback_.call(finger_id, tag);
   }
-
+  if (id_res->match == IDENTIFY_RESULT_NO_MATCH) {
+    this->finger_scan_unmatched_callback_.call();
+  }
   if (cmd_callbacks.on_identify) {
     cmd_callbacks.on_identify(id_res->match == IDENTIFY_RESULT_MATCH, id_res->tpl_id.id);
   }
