@@ -76,6 +76,20 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
     void (*on_bist_done)(uint16_t test_verdict);
   } fpc_cmd_callbacks_t;
 
+  /**
+   * @brief Callback functions (optional).
+   */
+  void on_list_templates(int num_templates, uint16_t *template_ids);
+  void on_identify(int is_match, uint16_t id);
+  void on_enroll(uint8_t feedback, uint8_t samples_remaining);
+  void on_version(char *version);
+  void on_status(uint16_t event, uint16_t state);
+  void on_error(uint16_t error);
+
+  void add_on_finger_scan_matched_callback(std::function<void(uint16_t, uint16_t)> callback) {
+    this->finger_scan_matched_callback_.add(std::move(callback));
+  }
+
  protected:
   uint32_t start_{0};      // per debug
   bool LED_state_{false};  // LED
@@ -98,6 +112,9 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   sensor::Sensor *last_finger_id_sensor_{nullptr};
   // sensor::Sensor *last_confidence_sensor_{nullptr};
   binary_sensor::BinarySensor *enrolling_binary_sensor_{nullptr};
+
+  CallbackManager<void(uint16_t, uint16_t)> finger_scan_matched_callback_;
+
   //--- State Machine Functions/declarations ---
   app_state_t app_state;
   bool device_ready;
@@ -109,15 +126,6 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void process_state();
 
   //--- HOST functions ---
-  /**
-   * @brief Callback functions for command responses (optional).
-   */
-  void on_list_templates(int num_templates, uint16_t *template_ids);
-  void on_identify(int is_match, uint16_t id);
-  void on_enroll(uint8_t feedback, uint8_t samples_remaining);
-  void on_version(char *version);
-  void on_status(uint16_t event, uint16_t state);
-  void on_error(uint16_t error);
 
   // send
   fpc::fpc_result_t fpc_send_request(fpc::fpc_cmd_hdr_t *cmd, size_t size);
@@ -148,6 +156,14 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   fpc::fpc_result_t fpc_hal_tx(uint8_t *data, std::size_t len);
   fpc::fpc_result_t fpc_hal_rx(uint8_t *data, std::size_t len);
   void fpc_hal_delay_ms(uint32_t ms);
+};
+
+class FingerScanMatchedTrigger : public Trigger<uint16_t, uint16_t> {
+ public:
+  explicit FingerScanMatchedTrigger(FingerprintFPC2532Component *parent) {
+    parent->add_on_finger_scan_matched_callback(
+        [this](uint16_t finger_id, uint16_t tag) { this->trigger(finger_id, tag); });
+  }
 };
 
 }  // namespace fingerprint_FPC2532

@@ -862,6 +862,8 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_identify(fpc::fpc_cmd_h
   fpc::fpc_cmd_identify_status_response_t *id_res;
 
   id_res = (fpc::fpc_cmd_identify_status_response_t *) cmd_hdr;
+  uint16_t finger_id = 0;
+  uint16_t tag = 0;
 
   if (!id_res) {
     ESP_LOGE(TAG, "CMD_IDENTIFY: Invalid parameter");
@@ -881,10 +883,16 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_identify(fpc::fpc_cmd_h
     ESP_LOGI(TAG, "CMD_IDENTIFY.id_type = %s", get_id_type_str_(id_res->tpl_id.type));
     ESP_LOGI(TAG, "CMD_IDENTIFY.id = %d", id_res->tpl_id.id);
     ESP_LOGI(TAG, "CMD_IDENTIFY.tag = %d", id_res->tag);
+    finger_id = id_res->tpl_id.id;
+    tag = id_res->tag;
   }
 
   if (id_res->match == IDENTIFY_RESULT_MATCH && this->last_finger_id_sensor_ != nullptr) {
     this->last_finger_id_sensor_->publish_state(id_res->tpl_id.id);
+  }
+
+  if (id_res->match == IDENTIFY_RESULT_MATCH) {
+    this->finger_scan_matched_callback_.call(finger_id, tag);
   }
 
   if (cmd_callbacks.on_identify) {

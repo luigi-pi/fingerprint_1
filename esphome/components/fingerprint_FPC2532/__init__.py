@@ -220,7 +220,7 @@ async def to_code(config):
     for conf in config.get(CONF_ON_FINGER_SCAN_MATCHED, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(
-            trigger, [(cg.uint16, "finger_id"), (cg.uint16, "confidence")], conf
+            trigger, [(cg.uint16, "finger_id"), (cg.uint16, "tag")], conf
         )
 
     for conf in config.get(CONF_ON_FINGER_SCAN_UNMATCHED, []):
