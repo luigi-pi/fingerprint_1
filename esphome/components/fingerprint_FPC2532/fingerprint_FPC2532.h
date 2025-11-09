@@ -171,7 +171,7 @@ class FingerScanMatchedTrigger : public Trigger<uint16_t, uint16_t> {
 
 class FingerScanUnmatchedTrigger : public Trigger<> {
  public:
-  explicit FingerScanUnmatchedTrigger(FingerprintGrowComponent *parent) {
+  explicit FingerScanUnmatchedTrigger(FingerprintFPC2532Component *parent) {
     parent->add_on_finger_scan_unmatched_callback([this]() { this->trigger(); });
   }
 };
