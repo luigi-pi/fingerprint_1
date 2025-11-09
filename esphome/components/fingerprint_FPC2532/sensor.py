@@ -6,6 +6,7 @@ from esphome.const import (
     CONF_FINGERPRINT_COUNT,
     CONF_LAST_CONFIDENCE,
     CONF_LAST_FINGER_ID,
+    CONF_NUM_SCANS,
     CONF_SECURITY_LEVEL,
     CONF_STATUS,
     ENTITY_CATEGORY_DIAGNOSTIC,
@@ -17,6 +18,9 @@ from esphome.const import (
 )
 
 from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
+
+CONF_ENROLLMENT_FEEDBACK = "enrollment_feedback"
+ICON_FEEDBACK = "mdi:message-alert-outline"
 
 DEPENDENCIES = ["fingerprint_FPC2532"]
 
@@ -36,6 +40,16 @@ CONFIG_SCHEMA = cv.Schema(
         ),
         cv.Optional(CONF_CAPACITY): sensor.sensor_schema(
             icon=ICON_DATABASE,
+            accuracy_decimals=0,
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        ),
+        cv.Optional(CONF_NUM_SCANS): sensor.sensor_schema(
+            icon=ICON_DATABASE,
+            accuracy_decimals=0,
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        ),
+        cv.Optional(CONF_ENROLLMENT_FEEDBACK): sensor.sensor_schema(
+            icon=ICON_FEEDBACK,
             accuracy_decimals=0,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
@@ -68,6 +82,8 @@ async def to_code(config):
         CONF_SECURITY_LEVEL,
         CONF_LAST_FINGER_ID,
         CONF_LAST_CONFIDENCE,
+        CONF_NUM_SCANS,
+        CONF_ENROLLMENT_FEEDBACK,
     ]:
         if key not in config:
             continue

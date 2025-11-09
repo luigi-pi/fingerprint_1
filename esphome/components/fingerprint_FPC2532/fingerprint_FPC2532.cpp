@@ -829,6 +829,13 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_enroll_status(fpc::fpc_
     ESP_LOGI(TAG, "CMD_ENROLL.id = %d", status->id);
     ESP_LOGI(TAG, "CMD_ENROLL.feedback = %s", get_enroll_feedback_str_(status->feedback));
     ESP_LOGI(TAG, "CMD_ENROLL.samples_remaining = %d", status->samples_remaining);
+
+    if (this->enrollment_feedback_ != nullptr) {
+      this->enrollment_feedback_->publish_state((uint8_t) status->feedback);
+    }
+    if (this->num_scans_ != nullptr) {
+      this->num_scans_->publish_state((uint8_t) status->samples_remaining);
+    }
   }
 
   if (status->feedback == ENROLL_FEEDBACK_DONE) {
@@ -917,8 +924,9 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_list_templates(fpc::fpc
     }
     this->list_templates_done = true;
     this->n_templates_on_device = list->number_of_templates;
-    if (this->fingerprint_count_sensor_ != nullptr)
+    if (this->fingerprint_count_sensor_ != nullptr) {
       this->fingerprint_count_sensor_->publish_state((uint8_t) this->n_templates_on_device);
+    }
   }
 
   if (cmd_callbacks.on_list_templates) {

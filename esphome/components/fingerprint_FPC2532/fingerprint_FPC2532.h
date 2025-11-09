@@ -41,6 +41,11 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void set_fingerprint_count_sensor(sensor::Sensor *fingerprint_count_sensor) {
     this->fingerprint_count_sensor_ = fingerprint_count_sensor;
   }
+  void set_enrollment_feedback_sensor(sensor::Sensor *enrollment_feedback) {
+    this->enrollment_feedback_ = enrollment_feedback;
+  }
+  void set_num_scans_sensor(sensor::Sensor *num_scans) { this->num_scans_ = num_scans; }
+
   // void set_capacity_sensor(sensor::Sensor *capacity_sensor) { this->capacity_sensor_ = capacity_sensor; }
   /*void set_security_level_sensor(sensor::Sensor *security_level_sensor) {
     this->security_level_sensor_ = security_level_sensor;
@@ -85,6 +90,9 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   sensor::Sensor *status_sensor_{nullptr};
   text_sensor::TextSensor *text_status_sensor_{nullptr};
   sensor::Sensor *fingerprint_count_sensor_{nullptr};
+  sensor::Sensor *enrollment_feedback_{nullptr};
+  sensor::Sensor *num_scans_{nullptr};
+
   // sensor::Sensor *capacity_sensor_{nullptr};
   // sensor::Sensor *security_level_sensor_{nullptr};
   sensor::Sensor *last_finger_id_sensor_{nullptr};
