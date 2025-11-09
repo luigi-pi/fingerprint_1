@@ -169,5 +169,12 @@ class FingerScanMatchedTrigger : public Trigger<uint16_t, uint16_t> {
   }
 };
 
+class FingerScanUnmatchedTrigger : public Trigger<> {
+ public:
+  explicit FingerScanUnmatchedTrigger(FingerprintGrowComponent *parent) {
+    parent->add_on_finger_scan_unmatched_callback([this]() { this->trigger(); });
+  }
+};
+
 }  // namespace fingerprint_FPC2532
 }  // namespace esphome
