@@ -744,6 +744,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
   }
 
   if (result == FPC_RESULT_OK) {
+    this->device_state = status->state;
     ESP_LOGI(TAG, "CMD_STATUS.event = %s (%04X)", get_event_str_(status->event), status->event);
     ESP_LOGI(TAG, "CMD_STATUS.state = %s (%04X)", get_state_str_(status->state).c_str(), status->state);
     ESP_LOGI(TAG, "CMD_STATUS.error = %s (%d)", fpc_result_to_string(status->app_fail_code), status->app_fail_code);
@@ -755,9 +756,20 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
     }
     if (status->state & STATE_ENROLL) {
       this->enrollment_feedback_->publish_state((uint8_t) 8);
+      if (status->state & EVENT_FINGER_DETECT) {
+        enrollment_scan_callback_.call(enroll_id);
+      }
     }
-    this->device_ready = true;
-    this->device_state = status->state;
+    if (status->state & STATE_APP_FW_READY) {
+      this->device_ready = true;
+    }
+    if ((this->device_state & (STATE_IDENTIFY | EVENT_FINGER_DETECT)) == (STATE_IDENTIFY | EVENT_FINGER_DETECT)) {
+      this->finger_scan_start_callback_.call();
+    }
+    if ((this->device_state & STATE_IDENTIFY) && (status->app_fail_code != FPC_RESULT_OK)) {
+      uint16_t capture_error = status->app_fail_code;
+      this->finger_scan_invalid_callback_.call(capture_error);
+    }
   }
   // modify if callbacks are needed for these events
 
@@ -829,6 +841,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_enroll_status(fpc::fpc_
   }
 
   if (result == FPC_RESULT_OK) {
+    uint16_t enroll_id = status->id;
     ESP_LOGI(TAG, "CMD_ENROLL.id = %d", status->id);
     ESP_LOGI(TAG, "CMD_ENROLL.feedback = %s", get_enroll_feedback_str_(status->feedback));
     ESP_LOGI(TAG, "CMD_ENROLL.samples_remaining = %d", status->samples_remaining);
@@ -842,6 +855,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_enroll_status(fpc::fpc_
   }
 
   if (status->feedback == ENROLL_FEEDBACK_DONE) {
+    this->enrollment_done_callback_.call(enroll_id);
     this->fpc_cmd_list_templates_request();
     this->app_state = APP_STATE_WAIT_LIST_TEMPLATES;
     if (this->enrolling_binary_sensor_ != nullptr) {
@@ -850,6 +864,11 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_enroll_status(fpc::fpc_
   } else {
     if (this->enrolling_binary_sensor_ != nullptr) {
       this->enrolling_binary_sensor_->publish_state(true);
+      if (status->feedback == ENROLL_FEEDBACK_REJECT_LOW_QUALITY ||
+          status->feedback == ENROLL_FEEDBACK_REJECT_LOW_COVERAGE ||
+          status->feedback == ENROLL_FEEDBACK_REJECT_LOW_MOBILITY || status->feedback == ENROLL_FEEDBACK_REJECT_OTHER) {
+        this->enrollment_failed_callback_.call(enroll_id);
+      }
     }
   }
 

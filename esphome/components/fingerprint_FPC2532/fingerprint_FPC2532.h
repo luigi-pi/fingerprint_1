@@ -92,10 +92,33 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void add_on_finger_scan_unmatched_callback(std::function<void()> callback) {
     this->finger_scan_unmatched_callback_.add(std::move(callback));
   }
+  void add_on_finger_scan_start_callback(std::function<void()> callback) {
+    this->finger_scan_start_callback_.add(std::move(callback));
+  }
+  /*
+  void add_on_finger_scan_misplaced_callback(std::function<void()> callback) {
+    this->finger_scan_misplaced_callback_.add(std::move(callback));
+  }
+  */
+
+  void add_on_finger_scan_invalid_callback(std::function<void(uint16_t)> callback) {
+    this->finger_scan_invalid_callback_.add(std::move(callback));
+  }
+  void add_on_enrollment_scan_callback(std::function<void(uint16_t)> callback) {
+    this->enrollment_scan_callback_.add(std::move(callback));
+  }
+  void add_on_enrollment_done_callback(std::function<void(uint16_t)> callback) {
+    this->enrollment_done_callback_.add(std::move(callback));
+  }
+
+  void add_on_enrollment_failed_callback(std::function<void(uint16_t)> callback) {
+    this->enrollment_failed_callback_.add(std::move(callback));
+  }
 
  protected:
   uint32_t start_{0};      // per debug
   bool LED_state_{false};  // LED
+  uint16_t enroll_id;
   // bool get_parameters_();
   // void sensor_wakeup_();
   // void sensor_sleep_();
@@ -118,6 +141,14 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
 
   CallbackManager<void(uint16_t, uint16_t)> finger_scan_matched_callback_;
   CallbackManager<void()> finger_scan_unmatched_callback_;
+
+  CallbackManager<void(uint16_t)> finger_scan_invalid_callback_;
+  CallbackManager<void()> finger_scan_start_callback_;
+  // CallbackManager<void()> finger_scan_misplaced_callback_;
+  CallbackManager<void(uint16_t)> enrollment_scan_callback_;
+  CallbackManager<void(uint16_t)> enrollment_done_callback_;
+  CallbackManager<void(uint16_t)> enrollment_failed_callback_;
+
   //--- State Machine Functions/declarations ---
   app_state_t app_state;
   bool device_ready;
@@ -173,6 +204,48 @@ class FingerScanUnmatchedTrigger : public Trigger<> {
  public:
   explicit FingerScanUnmatchedTrigger(FingerprintFPC2532Component *parent) {
     parent->add_on_finger_scan_unmatched_callback([this]() { this->trigger(); });
+  }
+};
+
+class FingerScanStartTrigger : public Trigger<> {
+ public:
+  explicit FingerScanStartTrigger(FingerprintFPC2532Component *parent) {
+    parent->add_on_finger_scan_start_callback([this]() { this->trigger(); });
+  }
+};
+/*
+class FingerScanMisplacedTrigger : public Trigger<> {
+ public:
+  explicit FingerScanMisplacedTrigger(FingerprintFPC2532Component *parent) {
+    parent->add_on_finger_scan_misplaced_callback([this]() { this->trigger(); });
+  }
+};
+*/
+class FingerScanInvalidTrigger : public Trigger<uint16_t> {
+ public:
+  explicit FingerScanInvalidTrigger(FingerprintFPC2532Component *parent) {
+    parent->add_on_finger_scan_invalid_callback([this](uint16_t capture_error) { this->trigger(capture_error); });
+  }
+};
+
+class EnrollmentScanTrigger : public Trigger<uint16_t> {
+ public:
+  explicit EnrollmentScanTrigger(FingerprintFPC2532Component *parent) {
+    parent->add_on_enrollment_scan_callback([this](uint16_t finger_id) { this->trigger(finger_id); });
+  }
+};
+
+class EnrollmentDoneTrigger : public Trigger<uint16_t> {
+ public:
+  explicit EnrollmentDoneTrigger(FingerprintFPC2532Component *parent) {
+    parent->add_on_enrollment_done_callback([this](uint16_t enroll_id) { this->trigger(enroll_id); });
+  }
+};
+
+class EnrollmentFailedTrigger : public Trigger<uint16_t> {
+ public:
+  explicit EnrollmentFailedTrigger(FingerprintFPC2532Component *parent) {
+    parent->add_on_enrollment_failed_callback([this](uint16_t finger_id) { this->trigger(finger_id); });
   }
 };
 
