@@ -237,9 +237,7 @@ async def to_code(config):
 
     for conf in config.get(CONF_ON_ENROLLMENT_SCAN, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
-        await automation.build_automation(
-            trigger, [(cg.uint8, "scan_num"), (cg.uint16, "finger_id")], conf
-        )
+        await automation.build_automation(trigger, [(cg.uint16, "finger_id")], conf)
 
     for conf in config.get(CONF_ON_ENROLLMENT_DONE, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
