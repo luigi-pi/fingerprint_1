@@ -328,9 +328,10 @@ void FingerprintFPC2532Component::process_state(void) {
   switch (app_state) {
     case APP_STATE_WAIT_READY:
       if (this->device_ready) {
-        delay_elapsed(5000);  // Wait for the device to be fully ready.
-        next_state = APP_STATE_WAIT_VERSION;
-        this->fpc_cmd_version_request();
+        if (delay_elapsed(3000)) {  // Wait for the device to be fully ready.
+          next_state = APP_STATE_WAIT_VERSION;
+          this->fpc_cmd_version_request();
+        }
       }
       break;
     case APP_STATE_WAIT_VERSION:
