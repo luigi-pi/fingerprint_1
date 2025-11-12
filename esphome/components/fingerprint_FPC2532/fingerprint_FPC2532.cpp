@@ -351,6 +351,7 @@ void FingerprintFPC2532Component::process_state(void) {
     case APP_STATE_WAIT_ENROLL:
       if (millis() - this->enroll_idle_time_ > this->enroll_timeout_ms_) {
         ESP_LOGW(TAG, "Enroll timeout. Aborting operation.");
+        this->enrollment_failed_callback_.call(0);
         fpc_cmd_abort();
         next_state = APP_STATE_WAIT_ABORT;
       }
