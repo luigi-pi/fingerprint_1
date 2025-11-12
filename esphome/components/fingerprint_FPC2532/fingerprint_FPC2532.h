@@ -62,8 +62,9 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   }
   bool delay_elapsed(uint32_t duration_ms);
   // request public functions
-  fpc::fpc_result_t fpc_cmd_enroll_request(fpc::fpc_id_type_t *id);
-  // Callbacks
+  fpc::fpc_result_t fpc_cmd_abort(void);
+  // fpc::fpc_result_t fpc_cmd_enroll_request(fpc::fpc_id_type_t *id);
+  //  Callbacks
   typedef struct {
     void (*on_error)(uint16_t error);
     void (*on_status)(uint16_t event, uint16_t state);
@@ -155,9 +156,9 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   fpc::fpc_result_t fpc_send_request(fpc::fpc_cmd_hdr_t *cmd, size_t size);
   fpc::fpc_result_t fpc_cmd_status_request(void);
   fpc::fpc_result_t fpc_cmd_version_request(void);
-
+  fpc::fpc_result_t fpc_cmd_enroll_request(fpc::fpc_id_type_t *id);
   fpc::fpc_result_t fpc_cmd_identify_request(fpc::fpc_id_type_t *id, uint16_t tag);
-  fpc::fpc_result_t fpc_cmd_abort(void);
+
   fpc::fpc_result_t fpc_cmd_list_templates_request(void);
   fpc::fpc_result_t fpc_cmd_delete_template_request(fpc::fpc_id_type_t *id);
   fpc::fpc_result_t fpc_cmd_reset_request(void);
