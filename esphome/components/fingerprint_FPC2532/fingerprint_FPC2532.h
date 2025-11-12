@@ -244,7 +244,7 @@ template<typename... Ts> class EnrollmentAction : public Action<Ts...>, public P
     fpc::fpc_id_type_t id_type;
     if (finger_id) {
       id_type.type = ID_TYPE_SPECIFIED;
-      id_type.id = this->finger_id;
+      id_type.id = finger_id;
       this->parent_->fpc_cmd_enroll_request(&id_type);
     } else {
       id_type.type = ID_TYPE_GENERATE_NEW;
