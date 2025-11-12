@@ -6,9 +6,9 @@
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/uart/uart.h"
-//#include "esphome/components/light/light_state.h"
-//#include "esphome/components/light/automation.h"
-//#include "esphome/components/monochromatic/monochromatic_light_output.h"
+#include "esphome/components/light/light_state.h"
+#include "esphome/components/light/automation.h"
+#include "esphome/components/monochromatic/monochromatic_light_output.h"
 
 #include <cstddef>
 #include <limits>
@@ -113,7 +113,6 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void add_on_enrollment_done_callback(std::function<void(uint16_t)> callback) {
     this->enrollment_done_callback_.add(std::move(callback));
   }
-
   void add_on_enrollment_failed_callback(std::function<void(uint16_t)> callback) {
     this->enrollment_failed_callback_.add(std::move(callback));
   }
@@ -122,6 +121,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   uint32_t start_{0};  // per debug
   // bool LED_state_{false};  // LED
   uint16_t enroll_id;
+  uint32_t enroll_idle_time_{0};
   // bool get_parameters_();
   // void sensor_wakeup_();
   // void sensor_sleep_();

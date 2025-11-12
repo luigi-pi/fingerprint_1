@@ -286,8 +286,6 @@ void FingerprintFPC2532Component::setup() {
   fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
   fpc_cmd_delete_template_request(&id_type);
   //  start_ = millis();
-  //  LED_state_ = true;
-  //  pinMode(2, OUTPUT);  // blue builtin LED
   app_state_t app_state = APP_STATE_WAIT_READY;
   device_ready = false;
   version_read = false;
@@ -347,44 +345,50 @@ void FingerprintFPC2532Component::process_state(void) {
       }
       break;
     case APP_STATE_WAIT_ENROLL:
-      if ((this->device_state & STATE_ENROLL) == 0) {
-        ESP_LOGI(TAG, "Finger Enrollment done.");
-        this->fpc_cmd_list_templates_request();
-        next_state = APP_STATE_WAIT_LIST_TEMPLATES;
+      if (millis() - this->enroll_idle_time_ > 5000) {
+        ESP_LOGW(TAG, "Enroll timeout. Aborting operation.");
+        fpc_cmd_abort();
+        next_state = APP_STATE_WAIT_ABORT;
       }
-      break;
-    case APP_STATE_WAIT_IDENTIFY:
-      if ((this->device_state & STATE_IDENTIFY) == 0) {
-        fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
-        this->fpc_hal_delay_ms(20);
-        this->fpc_cmd_identify_request(&id_type, 0);
-      }
-      break;
-    case APP_STATE_WAIT_ABORT:
-      if ((this->device_state & (STATE_ENROLL | STATE_IDENTIFY)) == 0) {
-        ESP_LOGI(TAG, "Operation aborted");
-        fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
-        ESP_LOGI(TAG, "Starting identify");
-        next_state = APP_STATE_WAIT_IDENTIFY;
-        this->fpc_cmd_identify_request(&id_type, 0);
-      }
-      break;
-    // Will run after next status event is received in response to delete template request.
-    case APP_STATE_WAIT_DELETE_TEMPLATES: {
-      ESP_LOGI(TAG, "All templates deleted.");
+  }
+  if ((this->device_state & STATE_ENROLL) == 0) {
+    ESP_LOGI(TAG, "Finger Enrollment done.");
+    this->fpc_cmd_list_templates_request();
+    next_state = APP_STATE_WAIT_LIST_TEMPLATES;
+  }
+  break;
+  case APP_STATE_WAIT_IDENTIFY:
+    if ((this->device_state & STATE_IDENTIFY) == 0) {
+      fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
       this->fpc_hal_delay_ms(20);
-      next_state = APP_STATE_WAIT_LIST_TEMPLATES;
-      this->fpc_cmd_list_templates_request();
-      break;
+      this->fpc_cmd_identify_request(&id_type, 0);
     }
-    default:
-      break;
+    break;
+  case APP_STATE_WAIT_ABORT:
+    if ((this->device_state & (STATE_ENROLL | STATE_IDENTIFY)) == 0) {
+      ESP_LOGI(TAG, "Operation aborted");
+      fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
+      ESP_LOGI(TAG, "Starting identify");
+      next_state = APP_STATE_WAIT_IDENTIFY;
+      this->fpc_cmd_identify_request(&id_type, 0);
+    }
+    break;
+  // Will run after next status event is received in response to delete template request.
+  case APP_STATE_WAIT_DELETE_TEMPLATES: {
+    ESP_LOGI(TAG, "All templates deleted.");
+    this->fpc_hal_delay_ms(20);
+    next_state = APP_STATE_WAIT_LIST_TEMPLATES;
+    this->fpc_cmd_list_templates_request();
+    break;
   }
+  default:
+    break;
+}
 
-  if (next_state != app_state) {
-    ESP_LOGI(TAG, "State transition %d -> %d\n", app_state, next_state);
-    app_state = next_state;
-  }
+if (next_state != app_state) {
+  ESP_LOGI(TAG, "State transition %d -> %d\n", app_state, next_state);
+  app_state = next_state;
+}
 }
 
 /*
@@ -484,6 +488,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_enroll_request(fpc::fpc_i
     ESP_LOGI(TAG, ">>> CMD_ENROLL (id.type=%s, id=%d)", get_id_type_str_(id->type), id->id);
 
     result = fpc_send_request(&cmd_req.cmd, sizeof(fpc::fpc_cmd_enroll_request_t));
+    this->enroll_idle_time_ = millis();
   }
 
   return result;
@@ -758,6 +763,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
       this->enrollment_feedback_->publish_state((uint8_t) 8);
       if (status->state & EVENT_FINGER_DETECT) {
         enrollment_scan_callback_.call(enroll_id);
+        this->enroll_idle_time_ = millis();
       }
     }
     if (status->state & STATE_ENROLL && status->app_fail_code != 0) {
