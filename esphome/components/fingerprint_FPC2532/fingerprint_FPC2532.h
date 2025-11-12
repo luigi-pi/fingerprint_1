@@ -6,9 +6,9 @@
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/uart/uart.h"
-#include "esphome/components/light/light_state.h"
-#include "esphome/components/light/automation.h"
-#include "esphome/components/monochromatic/monochromatic_light_output.h"
+//#include "esphome/components/light/light_state.h"
+//#include "esphome/components/light/automation.h"
+//#include "esphome/components/monochromatic/monochromatic_light_output.h"
 
 #include <cstddef>
 #include <limits>
