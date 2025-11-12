@@ -876,7 +876,8 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_enroll_status(fpc::fpc_
   }
 
   if (cmd_callbacks.on_enroll) {
-    cmd_callbacks.on_enroll(status->feedback, status->samples_remaining);
+    // cmd_callbacks.on_enroll(status->feedback, status->samples_remaining);
+    ESP_LOGI(TAG, "callback on ensollment chiamata");
   }
 
   return result;
