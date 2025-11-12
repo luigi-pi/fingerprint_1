@@ -262,10 +262,15 @@ template<typename... Ts> class EnrollmentAction : public Action<Ts...>, public P
 
   void play(Ts... x) override {
     auto finger_id = this->finger_id_.value(x...);
-    if (finger_id) {
-      this->parent_->fpc_cmd_enroll_request(ID_TYPE_SPECIFIED, finger_id);
+    this->fpc::fpc_id_type_t id_type;
+    if (this->finger_id) {
+      this->id_type.type = ID_TYPE_SPECIFIED;
+      this->id_type.id = this->finger_id;
+      this->parent_->fpc_cmd_enroll_request(&id_type);
     } else {
-      this->parent_->fpc_cmd_enroll_request(ID_TYPE_GENERATE_NEW, 0);
+      this->id_type.type = ID_TYPE_GENERATE_NEW;
+      this->id_type.id = 0;
+      this->parent_->fpc_cmd_enroll_request(&id_type);
     }
   }
 };
