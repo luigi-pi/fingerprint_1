@@ -256,5 +256,15 @@ class EnrollmentFailedTrigger : public Trigger<uint16_t> {
   }
 };
 
+template<typename... Ts> class EnrollmentAction : public Action<Ts...>, public Parented<FingerprintFPC2532Component> {
+ public:
+  TEMPLATABLE_VALUE(fpc::fpc_id_type_t, *id)
+
+  void play(Ts... x) override {
+    auto finger_id = this->finger_id_.value(x...);
+    this->parent_->fpc_cmd_enroll_request(fpc::fpc_id_type_t * id)
+  }
+};
+
 }  // namespace fingerprint_FPC2532
 }  // namespace esphome

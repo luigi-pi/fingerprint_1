@@ -8,7 +8,6 @@ from esphome.const import (
     CONF_FINGER_ID,
     CONF_ID,
     CONF_NEW_PASSWORD,
-    CONF_NUM_SCANS,
     CONF_ON_ENROLLMENT_DONE,
     CONF_ON_ENROLLMENT_FAILED,
     CONF_ON_ENROLLMENT_SCAN,
@@ -261,7 +260,6 @@ async def to_code(config):
         {
             cv.GenerateID(): cv.use_id(FingerprintFPC2532Component),
             cv.Required(CONF_FINGER_ID): cv.templatable(cv.uint16_t),
-            cv.Optional(CONF_NUM_SCANS): cv.templatable(cv.uint8_t),
         },
         key=CONF_FINGER_ID,
     ),
@@ -272,9 +270,6 @@ async def fingerprint_FPC2532_enroll_to_code(config, action_id, template_arg, ar
 
     template_ = await cg.templatable(config[CONF_FINGER_ID], args, cg.uint16)
     cg.add(var.set_finger_id(template_))
-    if CONF_NUM_SCANS in config:
-        template_ = await cg.templatable(config[CONF_NUM_SCANS], args, cg.uint8)
-        cg.add(var.set_num_scans(template_))
     return var
 
 

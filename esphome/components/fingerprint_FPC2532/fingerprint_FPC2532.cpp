@@ -284,8 +284,8 @@ void FingerprintFPC2532Component::setup() {
   this->fpc_hal_init();
   fpc_cmd_abort();
   fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
-  fpc_cmd_delete_template_request(&id_type);
-  //  start_ = millis();
+  // fpc_cmd_delete_template_request(&id_type);
+  //   start_ = millis();
   app_state_t app_state = APP_STATE_WAIT_READY;
   device_ready = false;
   version_read = false;
@@ -311,12 +311,12 @@ STATE MACHINE PROCESSING
 
 bool FingerprintFPC2532Component::delay_elapsed(uint32_t duration_ms) {
   uint32_t now = millis();
-  if (delay_until_ == 0) {
-    delay_until_ = now + duration_ms;  // set target time
+  if (this->delay_until_ == 0) {
+    this->delay_until_ = now + duration_ms;  // set target time
     return false;
   }
-  if ((int32_t) (now - delay_until_) >= 0) {  // handle millis() overflow
-    delay_until_ = 0;                         // reset for next delay
+  if ((int32_t) (now - this->delay_until_) >= 0) {  // handle millis() overflow
+    this->delay_until_ = 0;                         // reset for next delay
     return true;
   }
   return false;
@@ -328,7 +328,7 @@ void FingerprintFPC2532Component::process_state(void) {
   switch (app_state) {
     case APP_STATE_WAIT_READY:
       if (this->device_ready) {
-        if (delay_elapsed(3000)) {  // Wait for the device to be fully ready.
+        if (this->delay_elapsed(3000)) {  // Wait for the device to be fully ready.
           next_state = APP_STATE_WAIT_VERSION;
           this->fpc_cmd_version_request();
         }
