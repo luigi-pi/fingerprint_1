@@ -292,6 +292,10 @@ void FingerprintFPC2532Component::setup() {
   list_templates_done = false;
   uint16_t device_state = 0;
   uint8_t n_templates_on_device = 0;
+  // If the user didn't specify an idle period to sleep, applies the default.
+  if (this->enroll_timeout_ms_ == UINT32_MAX) {
+    this->enroll_timeout_ms_ = DEFAULT_ENROLL_TIMEOUT_MS;
+  }
   if (this->enrolling_binary_sensor_ != nullptr) {
     this->enrolling_binary_sensor_->publish_state(false);
   }
@@ -345,50 +349,49 @@ void FingerprintFPC2532Component::process_state(void) {
       }
       break;
     case APP_STATE_WAIT_ENROLL:
-      if (millis() - this->enroll_idle_time_ > 5000) {
+      if (millis() - this->enroll_idle_time_ > this->enroll_timeout_ms_) {
         ESP_LOGW(TAG, "Enroll timeout. Aborting operation.");
         fpc_cmd_abort();
         next_state = APP_STATE_WAIT_ABORT;
       }
-  }
-  if ((this->device_state & STATE_ENROLL) == 0) {
-    ESP_LOGI(TAG, "Finger Enrollment done.");
-    this->fpc_cmd_list_templates_request();
-    next_state = APP_STATE_WAIT_LIST_TEMPLATES;
-  }
-  break;
-  case APP_STATE_WAIT_IDENTIFY:
-    if ((this->device_state & STATE_IDENTIFY) == 0) {
-      fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
+      if ((this->device_state & STATE_ENROLL) == 0) {
+        ESP_LOGI(TAG, "Finger Enrollment done.");
+        this->fpc_cmd_list_templates_request();
+        next_state = APP_STATE_WAIT_LIST_TEMPLATES;
+      }
+      break;
+    case APP_STATE_WAIT_IDENTIFY:
+      if ((this->device_state & STATE_IDENTIFY) == 0) {
+        fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
+        this->fpc_hal_delay_ms(20);
+        this->fpc_cmd_identify_request(&id_type, 0);
+      }
+      break;
+    case APP_STATE_WAIT_ABORT:
+      if ((this->device_state & (STATE_ENROLL | STATE_IDENTIFY)) == 0) {
+        ESP_LOGI(TAG, "Operation aborted");
+        fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
+        ESP_LOGI(TAG, "Starting identify");
+        next_state = APP_STATE_WAIT_IDENTIFY;
+        this->fpc_cmd_identify_request(&id_type, 0);
+      }
+      break;
+    // Will run after next status event is received in response to delete template request.
+    case APP_STATE_WAIT_DELETE_TEMPLATES: {
+      ESP_LOGI(TAG, "All templates deleted.");
       this->fpc_hal_delay_ms(20);
-      this->fpc_cmd_identify_request(&id_type, 0);
+      next_state = APP_STATE_WAIT_LIST_TEMPLATES;
+      this->fpc_cmd_list_templates_request();
+      break;
     }
-    break;
-  case APP_STATE_WAIT_ABORT:
-    if ((this->device_state & (STATE_ENROLL | STATE_IDENTIFY)) == 0) {
-      ESP_LOGI(TAG, "Operation aborted");
-      fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
-      ESP_LOGI(TAG, "Starting identify");
-      next_state = APP_STATE_WAIT_IDENTIFY;
-      this->fpc_cmd_identify_request(&id_type, 0);
-    }
-    break;
-  // Will run after next status event is received in response to delete template request.
-  case APP_STATE_WAIT_DELETE_TEMPLATES: {
-    ESP_LOGI(TAG, "All templates deleted.");
-    this->fpc_hal_delay_ms(20);
-    next_state = APP_STATE_WAIT_LIST_TEMPLATES;
-    this->fpc_cmd_list_templates_request();
-    break;
+    default:
+      break;
   }
-  default:
-    break;
-}
 
-if (next_state != app_state) {
-  ESP_LOGI(TAG, "State transition %d -> %d\n", app_state, next_state);
-  app_state = next_state;
-}
+  if (next_state != app_state) {
+    ESP_LOGI(TAG, "State transition %d -> %d\n", app_state, next_state);
+    app_state = next_state;
+  }
 }
 
 /*

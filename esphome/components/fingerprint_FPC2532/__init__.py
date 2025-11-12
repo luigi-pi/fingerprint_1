@@ -32,6 +32,7 @@ MULTI_CONF = True
 CONF_FINGERPRINT_FPC2532_ID = "fingerprint_FPC2532_id"
 CONF_SENSOR_POWER_PIN = "sensor_power_pin"
 CONF_IDLE_PERIOD_TO_SLEEP = "idle_period_to_sleep"
+CONF_ENROLL_TIMEOUT = "enroll_timeout"
 
 fingerprint_FPC2532_ns = cg.esphome_ns.namespace("fingerprint_FPC2532")
 FingerprintFPC2532Component = fingerprint_FPC2532_ns.class_(
@@ -123,6 +124,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(
                 CONF_IDLE_PERIOD_TO_SLEEP
             ): cv.positive_time_period_milliseconds,
+            cv.Optional(CONF_ENROLL_TIMEOUT): cv.positive_time_period_milliseconds,
             cv.Optional(CONF_PASSWORD): cv.uint32_t,
             cv.Optional(CONF_NEW_PASSWORD): cv.uint32_t,
             cv.Optional(CONF_ON_FINGER_SCAN_START): automation.validate_automation(
@@ -212,6 +214,10 @@ async def to_code(config):
     if CONF_IDLE_PERIOD_TO_SLEEP in config:
         idle_period_to_sleep_ms = config[CONF_IDLE_PERIOD_TO_SLEEP]
         cg.add(var.set_idle_period_to_sleep_ms(idle_period_to_sleep_ms))
+
+    if CONF_ENROLL_TIMEOUT in config:
+        enroll_timeout_ms = config[CONF_ENROLL_TIMEOUT]
+        cg.add(var.set_enroll_timeout_ms(enroll_timeout_ms))
 
     for conf in config.get(CONF_ON_FINGER_SCAN_START, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)

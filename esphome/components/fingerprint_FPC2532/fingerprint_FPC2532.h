@@ -19,6 +19,7 @@ namespace esphome {
 namespace fingerprint_FPC2532 {
 // using fpc::fpc_result_t; /* to avoid errors due to namespaces */
 const uint8_t MAX_NUMBER_OF_TEMPLATES = 30;
+static const uint32_t DEFAULT_ENROLL_TIMEOUT_MS = 5000;
 typedef enum {
   APP_STATE_WAIT_READY = 0,
   APP_STATE_WAIT_VERSION,
@@ -37,6 +38,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
 
   void set_sensing_pin(GPIOPin *sensing_pin) { this->sensing_pin_ = sensing_pin; }
   void set_sensor_power_pin(GPIOPin *sensor_power_pin) { this->sensor_power_pin_ = sensor_power_pin; }
+  void enroll_timeout_ms(uint32_t period_ms) { this->enroll_timeout_ms_ = period_ms; }
   void set_status_sensor(sensor::Sensor *status_sensor) { this->status_sensor_ = status_sensor; }
   void set_text_status_sensor(text_sensor::TextSensor *text_status_sensor) {
     this->text_status_sensor_ = text_status_sensor;
@@ -122,6 +124,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   // bool LED_state_{false};  // LED
   uint16_t enroll_id;
   uint32_t enroll_idle_time_{0};
+  uint32_t enroll_timeout_ms_ = UINT32_MAX;
   // bool get_parameters_();
   // void sensor_wakeup_();
   // void sensor_sleep_();
