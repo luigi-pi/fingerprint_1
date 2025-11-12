@@ -386,10 +386,18 @@ void FingerprintFPC2532Component::process_state(void) {
     case APP_STATE_WAIT_ABORT:
       if ((this->device_state & (STATE_ENROLL | STATE_IDENTIFY)) == 0) {
         ESP_LOGI(TAG, "Operation aborted");
-        fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
-        ESP_LOGI(TAG, "Starting identify");
-        next_state = APP_STATE_WAIT_IDENTIFY;
-        this->fpc_cmd_identify_request(&id_type, 0);
+        if (this->enroll_request == true) {
+          fpc::fpc_id_type_t id_type = this->id_type_enroll_request;
+          ESP_LOGI(TAG, "Starting enroll");
+          next_state = APP_STATE_WAIT_ENROLL;
+          this->fpc_cmd_enroll_request(&id_type);
+          this->enroll_request = false;
+        } else {
+          fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
+          ESP_LOGI(TAG, "Starting identify");
+          next_state = APP_STATE_WAIT_IDENTIFY;
+          this->fpc_cmd_identify_request(&id_type, 0);
+        }
       }
       break;
     // Will run after next status event is received in response to delete template request.

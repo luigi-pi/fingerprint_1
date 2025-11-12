@@ -259,7 +259,7 @@ async def to_code(config):
     cv.maybe_simple_value(
         {
             cv.GenerateID(): cv.use_id(FingerprintFPC2532Component),
-            cv.Required(CONF_FINGER_ID): cv.templatable(cv.uint16_t),
+            cv.Optional(CONF_FINGER_ID): cv.templatable(cv.uint16_t),
         },
         key=CONF_FINGER_ID,
     ),
