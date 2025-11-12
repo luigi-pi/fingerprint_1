@@ -309,12 +309,26 @@ STATE MACHINE PROCESSING
 ------------------------
 */
 
+bool FingerprintFPC2532Component::delay_elapsed(uint32_t duration_ms) {
+  uint32_t now = millis();
+  if (delay_until_ == 0) {
+    delay_until_ = now + duration_ms;  // set target time
+    return false;
+  }
+  if ((int32_t) (now - delay_until_) >= 0) {  // handle millis() overflow
+    delay_until_ = 0;                         // reset for next delay
+    return true;
+  }
+  return false;
+}
+
 void FingerprintFPC2532Component::process_state(void) {
   app_state_t next_state = app_state;
 
   switch (app_state) {
     case APP_STATE_WAIT_READY:
       if (this->device_ready) {
+        delay_elapsed(5000);  // Wait for the device to be fully ready.
         next_state = APP_STATE_WAIT_VERSION;
         this->fpc_cmd_version_request();
       }
@@ -1056,6 +1070,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_hal_rx(uint8_t *data, std::si
   return this->read_array(data, len) ? FPC_RESULT_OK : FPC_RESULT_FAILURE;
 }
 void FingerprintFPC2532Component::fpc_hal_delay_ms(uint32_t ms) { delay(ms); }
+
 void FingerprintFPC2532Component::dump_config() {}
 
 }  // namespace fingerprint_FPC2532

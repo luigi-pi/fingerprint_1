@@ -67,7 +67,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void set_enrolling_binary_sensor(binary_sensor::BinarySensor *enrolling_binary_sensor) {
     this->enrolling_binary_sensor_ = enrolling_binary_sensor;
   }
-
+  bool delay_elapsed(uint32_t duration_ms);
   typedef struct {
     void (*on_error)(uint16_t error);
     void (*on_status)(uint16_t event, uint16_t state);
@@ -120,7 +120,8 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   }
 
  protected:
-  uint32_t start_{0};  // per debug
+  uint32_t start_{0};         // per debug
+  uint32_t delay_until_ = 0;  // for non-blocking delays
   // bool LED_state_{false};  // LED
   uint16_t enroll_id;
   uint32_t enroll_idle_time_{0};
