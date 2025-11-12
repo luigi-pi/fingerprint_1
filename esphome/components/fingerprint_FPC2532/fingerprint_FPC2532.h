@@ -116,8 +116,8 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   }
 
  protected:
-  uint32_t start_{0};      // per debug
-  bool LED_state_{false};  // LED
+  uint32_t start_{0};  // per debug
+  // bool LED_state_{false};  // LED
   uint16_t enroll_id;
   // bool get_parameters_();
   // void sensor_wakeup_();

@@ -760,6 +760,9 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
         enrollment_scan_callback_.call(enroll_id);
       }
     }
+    if (status->state & STATE_ENROLL && status->app_fail_code != 0) {
+      this->enrollment_failed_callback_.call(enroll_id);
+    }
     if (status->state & STATE_APP_FW_READY) {
       this->device_ready = true;
     }
