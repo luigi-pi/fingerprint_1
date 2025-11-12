@@ -32,8 +32,11 @@ typedef enum {
 
 class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDevice {
  public:
+  //--- State Machine Functions/declarations ---
+  app_state_t app_state;
   fpc::fpc_id_type_t id_type_enroll_request{0, 0};
   bool enroll_request = false;
+
   void update() override;
   void setup() override;
   void dump_config() override;
@@ -139,7 +142,6 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   CallbackManager<void(uint16_t)> enrollment_failed_callback_;
 
   //--- State Machine Functions/declarations ---
-  app_state_t app_state;
   bool device_ready;
   bool version_read;
   bool list_templates_done;
@@ -263,17 +265,16 @@ template<typename... Ts> class EnrollmentAction : public Action<Ts...>, public P
 
   void play(Ts... x) override {
     auto finger_id = this->finger_id_.value(x...);
-    fpc::fpc_id_type_t id_type_enroll_request;
-    enroll_request = true;
+    this->parent_->enroll_request = true;
     if (finger_id) {
-      id_type_enroll_request.type = ID_TYPE_SPECIFIED;
-      id_type_enroll_request.id = finger_id;
+      this->parent_->id_type_enroll_request.type = ID_TYPE_SPECIFIED;
+      this->parent_->id_type_enroll_request.id = finger_id;
     } else {
-      id_type_enroll_request.type = ID_TYPE_GENERATE_NEW;
-      id_type_enroll_request.id = 0;
+      this->parent_->id_type_enroll_request.type = ID_TYPE_GENERATE_NEW;
+      this->parent_->id_type_enroll_request.id = 0;
     }
     this->parent_->fpc_cmd_abort();
-    app_state = APP_STATE_WAIT_ABORT;
+    this->parent_->app_state = APP_STATE_WAIT_ABORT;
   }
 };
 
