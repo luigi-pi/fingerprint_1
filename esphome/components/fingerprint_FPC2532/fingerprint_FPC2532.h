@@ -35,7 +35,6 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void update() override;
   void setup() override;
   void dump_config() override;
-
   void set_sensing_pin(GPIOPin *sensing_pin) { this->sensing_pin_ = sensing_pin; }
   void set_sensor_power_pin(GPIOPin *sensor_power_pin) { this->sensor_power_pin_ = sensor_power_pin; }
   void set_enroll_timeout_ms(uint32_t period_ms) { this->enroll_timeout_ms_ = period_ms; }
@@ -50,24 +49,16 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
     this->enrollment_feedback_ = enrollment_feedback;
   }
   void set_num_scans_sensor(sensor::Sensor *num_scans) { this->num_scans_ = num_scans; }
-
-  // void set_capacity_sensor(sensor::Sensor *capacity_sensor) { this->capacity_sensor_ = capacity_sensor; }
-  /*void set_security_level_sensor(sensor::Sensor *security_level_sensor) {
-    this->security_level_sensor_ = security_level_sensor;
-  }
-  */
   void set_last_finger_id_sensor(sensor::Sensor *last_finger_id_sensor) {
     this->last_finger_id_sensor_ = last_finger_id_sensor;
   }
-  /*
-  void set_last_confidence_sensor(sensor::Sensor *last_confidence_sensor) {
-    this->last_confidence_sensor_ = last_confidence_sensor;
-  }
-  */
   void set_enrolling_binary_sensor(binary_sensor::BinarySensor *enrolling_binary_sensor) {
     this->enrolling_binary_sensor_ = enrolling_binary_sensor;
   }
   bool delay_elapsed(uint32_t duration_ms);
+  // request public functions
+  fpc::fpc_result_t fpc_cmd_enroll_request(fpc::fpc_id_type_t *id);
+  // Callbacks
   typedef struct {
     void (*on_error)(uint16_t error);
     void (*on_status)(uint16_t event, uint16_t state);
@@ -81,9 +72,6 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
     void (*on_bist_done)(uint16_t test_verdict);
   } fpc_cmd_callbacks_t;
 
-  /**
-   * @brief Callback functions (optional).
-   */
   void on_list_templates(int num_templates, uint16_t *template_ids);
   void on_identify(int is_match, uint16_t id);
   void on_enroll(uint8_t feedback, uint8_t samples_remaining);
@@ -101,11 +89,10 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
     this->finger_scan_start_callback_.add(std::move(callback));
   }
   /*
-  void add_on_finger_scan_misplaced_callback(std::function<void()> callback) {
+  //void add_on_finger_scan_misplaced_callback(std::function<void()> callback) {
     this->finger_scan_misplaced_callback_.add(std::move(callback));
   }
   */
-
   void add_on_finger_scan_invalid_callback(std::function<void(uint16_t)> callback) {
     this->finger_scan_invalid_callback_.add(std::move(callback));
   }
@@ -122,24 +109,18 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
  protected:
   uint32_t start_{0};         // per debug
   uint32_t delay_until_ = 0;  // for non-blocking delays
-  // bool LED_state_{false};  // LED
   uint16_t enroll_id;
   uint32_t enroll_idle_time_{0};
   uint32_t enroll_timeout_ms_ = UINT32_MAX;
-  // bool get_parameters_();
-  // void sensor_wakeup_();
-  // void sensor_sleep_();
   const uint8_t RST_PIN_ =
       26;  // RST_N pin -evaluate if add it on init_py to set via yaml like sensing_pin and sensor_power_pin
   GPIOPin *sensing_pin_{nullptr};
   GPIOPin *sensor_power_pin_{nullptr};
-  // uint32_t last_transfer_ms_ = 0;
   sensor::Sensor *status_sensor_{nullptr};
   text_sensor::TextSensor *text_status_sensor_{nullptr};
   sensor::Sensor *fingerprint_count_sensor_{nullptr};
   sensor::Sensor *enrollment_feedback_{nullptr};
   sensor::Sensor *num_scans_{nullptr};
-
   // sensor::Sensor *capacity_sensor_{nullptr};
   // sensor::Sensor *security_level_sensor_{nullptr};
   sensor::Sensor *last_finger_id_sensor_{nullptr};
@@ -148,7 +129,6 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
 
   CallbackManager<void(uint16_t, uint16_t)> finger_scan_matched_callback_;
   CallbackManager<void()> finger_scan_unmatched_callback_;
-
   CallbackManager<void(uint16_t)> finger_scan_invalid_callback_;
   CallbackManager<void()> finger_scan_start_callback_;
   // CallbackManager<void()> finger_scan_misplaced_callback_;
@@ -163,7 +143,6 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   bool list_templates_done;
   uint16_t device_state;
   uint8_t n_templates_on_device;
-
   void process_state();
 
   //--- HOST functions ---
@@ -172,7 +151,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   fpc::fpc_result_t fpc_send_request(fpc::fpc_cmd_hdr_t *cmd, size_t size);
   fpc::fpc_result_t fpc_cmd_status_request(void);
   fpc::fpc_result_t fpc_cmd_version_request(void);
-  fpc::fpc_result_t fpc_cmd_enroll_request(fpc::fpc_id_type_t *id);
+
   fpc::fpc_result_t fpc_cmd_identify_request(fpc::fpc_id_type_t *id, uint16_t tag);
   fpc::fpc_result_t fpc_cmd_abort(void);
   fpc::fpc_result_t fpc_cmd_list_templates_request(void);
@@ -258,7 +237,7 @@ class EnrollmentFailedTrigger : public Trigger<uint16_t> {
 
 template<typename... Ts> class EnrollmentAction : public Action<Ts...>, public Parented<FingerprintFPC2532Component> {
  public:
-  TEMPLATABLE_VALUE(uint16_t, id)
+  TEMPLATABLE_VALUE(uint16_t, finger_id)
 
   void play(Ts... x) override {
     auto finger_id = this->finger_id_.value(x...);
