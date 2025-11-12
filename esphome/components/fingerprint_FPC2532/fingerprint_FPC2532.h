@@ -258,11 +258,15 @@ class EnrollmentFailedTrigger : public Trigger<uint16_t> {
 
 template<typename... Ts> class EnrollmentAction : public Action<Ts...>, public Parented<FingerprintFPC2532Component> {
  public:
-  TEMPLATABLE_VALUE(fpc::fpc_id_type_t, *id)
+  TEMPLATABLE_VALUE(uint16_t, id)
 
   void play(Ts... x) override {
     auto finger_id = this->finger_id_.value(x...);
-    this->parent_->fpc_cmd_enroll_request(fpc::fpc_id_type_t * id)
+    if (finger_id) {
+      this->parent_->fpc_cmd_enroll_request(ID_TYPE_SPECIFIED, finger_id);
+    } else {
+      this->parent_->fpc_cmd_enroll_request(ID_TYPE_GENERATE_NEW, 0);
+    }
   }
 };
 
