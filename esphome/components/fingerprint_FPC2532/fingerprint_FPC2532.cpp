@@ -375,9 +375,10 @@ void FingerprintFPC2532Component::process_state(void) {
       }
       if ((this->device_state & (STATE_ENROLL | STATE_APP_FW_READY)) == (STATE_ENROLL | STATE_APP_FW_READY)) {
         enroll_status_received = true;
+        ESP_LOGI(TAG, "enroll_status_received = %d ", enroll_status_received);
       }
       if (((this->device_state & STATE_ENROLL) == 0) && (enroll_status_received)) {
-        ESP_LOGI(TAG, "device state? = %s ", get_state_str_(device_state).c_str());
+        // ESP_LOGI(TAG, "device state? = %s ", get_state_str_(device_state).c_str());
         ESP_LOGI(TAG, "Finger Enrollment done.");
         this->fpc_cmd_list_templates_request();
         next_state = APP_STATE_WAIT_LIST_TEMPLATES;
