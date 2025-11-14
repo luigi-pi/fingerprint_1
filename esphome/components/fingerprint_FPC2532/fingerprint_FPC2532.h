@@ -148,6 +148,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   bool device_ready;
   bool version_read;
   bool list_templates_done;
+  bool enroll_status_received_ = false;
   uint16_t device_state;
   uint8_t n_templates_on_device;
   void process_state();

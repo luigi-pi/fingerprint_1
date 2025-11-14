@@ -364,8 +364,8 @@ void FingerprintFPC2532Component::process_state(void) {
         }
       }
       break;
+
     case APP_STATE_WAIT_ENROLL: {
-      bool enroll_status_received = false;
       if (millis() - this->enroll_idle_time_ > this->enroll_timeout_ms_) {
         ESP_LOGW(TAG, "Enroll timeout. Aborting operation.");
         this->enrollment_failed_callback_.call(0);
@@ -373,18 +373,23 @@ void FingerprintFPC2532Component::process_state(void) {
         next_state = APP_STATE_WAIT_ABORT;
         break;
       }
-      if ((this->device_state & (STATE_ENROLL | STATE_APP_FW_READY)) == (STATE_ENROLL | STATE_APP_FW_READY)) {
-        enroll_status_received = true;
-        ESP_LOGI(TAG, "enroll_status_received = %d ", enroll_status_received);
+
+      if (!this->enroll_status_received_ && (this->device_state & STATE_APP_FW_READY) &&
+          (this->device_state & STATE_ENROLL)) {
+        this->enroll_status_received_ = true;
+        ESP_LOGD(TAG, "Enrollment acknowledged by firmware");
       }
-      if (((this->device_state & STATE_ENROLL) == 0) && (enroll_status_received)) {
-        // ESP_LOGI(TAG, "device state? = %s ", get_state_str_(device_state).c_str());
+
+      if (this->enroll_status_received_ && !(this->device_state & STATE_ENROLL)) {
         ESP_LOGI(TAG, "Finger Enrollment done.");
         this->fpc_cmd_list_templates_request();
         next_state = APP_STATE_WAIT_LIST_TEMPLATES;
+        this->enroll_status_received_ = false;
       }
+
       break;
     }
+
     case APP_STATE_WAIT_IDENTIFY:
       if ((this->device_state & STATE_IDENTIFY) == 0) {
         fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
