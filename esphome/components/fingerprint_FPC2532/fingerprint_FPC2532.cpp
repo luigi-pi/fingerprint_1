@@ -390,9 +390,9 @@ void FingerprintFPC2532Component::process_state(void) {
 
     case APP_STATE_WAIT_IDENTIFY:
       if (device_ready_ && ((this->device_state_ & STATE_IDENTIFY) == 0)) {
-        fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
-        this->fpc_hal_delay_ms(10);
-        this->fpc_cmd_identify_request(&id_type, 0);
+        // fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
+        // if (this->delay_elapsed(300)) {
+        // this->fpc_cmd_identify_request(&id_type, 0);}
       }
       break;
     case APP_STATE_WAIT_ABORT:
