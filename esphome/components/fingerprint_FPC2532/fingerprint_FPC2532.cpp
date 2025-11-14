@@ -370,7 +370,7 @@ void FingerprintFPC2532Component::process_state(void) {
         fpc_cmd_abort();
         next_state = APP_STATE_WAIT_ABORT;
       }
-      if ((this->device_state & STATE_ENROLL) == 0) {
+      if ((device_ready && (this->device_state & STATE_ENROLL)) == 0) {
         ESP_LOGI(TAG, "Finger Enrollment done.");
         this->fpc_cmd_list_templates_request();
         next_state = APP_STATE_WAIT_LIST_TEMPLATES;
@@ -379,7 +379,7 @@ void FingerprintFPC2532Component::process_state(void) {
     case APP_STATE_WAIT_IDENTIFY:
       if ((this->device_state & STATE_IDENTIFY) == 0) {
         fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
-        this->fpc_hal_delay_ms(20);
+        this->fpc_hal_delay_ms(10);
         this->fpc_cmd_identify_request(&id_type, 0);
       }
       break;
@@ -509,6 +509,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_version_request(void) {
 fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_enroll_request(fpc::fpc_id_type_t *id) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_enroll_request_t cmd_req;
+  device_ready = false;
 
   if (id->type != ID_TYPE_SPECIFIED && id->type != ID_TYPE_GENERATE_NEW) {
     ESP_LOGE(TAG, "Enroll Request: Invalid parameter");
