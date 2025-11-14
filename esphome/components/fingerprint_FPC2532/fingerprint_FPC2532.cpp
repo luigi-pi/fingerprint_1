@@ -283,9 +283,9 @@ void FingerprintFPC2532Component::setup() {
   this->hal_reset_device();
   this->fpc_hal_init();
   fpc_cmd_abort();
-  fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
-  // fpc_cmd_delete_template_request(&id_type);
-  //   start_ = millis();
+  // fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
+  //  fpc_cmd_delete_template_request(&id_type);
+  //    start_ = millis();
   app_state_t app_state = APP_STATE_WAIT_READY;
   device_ready = false;
   version_read = false;
@@ -328,10 +328,10 @@ void FingerprintFPC2532Component::process_state(void) {
   switch (app_state) {
     case APP_STATE_WAIT_READY:
       if (this->device_ready) {
-        fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
-        if (this->delay_elapsed(3000)) {                              // Wait for the device to be fully ready.
+        if (this->delay_elapsed(3000)) {  // Wait for the device to be fully ready.
           next_state = APP_STATE_WAIT_VERSION;
           this->fpc_cmd_version_request();
+          this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
         }
       }
       break;
