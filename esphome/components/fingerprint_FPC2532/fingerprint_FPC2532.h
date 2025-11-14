@@ -145,12 +145,12 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   CallbackManager<void(uint16_t)> enrollment_failed_callback_;
 
   //--- State Machine Functions/declarations ---
-  bool device_ready;
-  bool version_read;
-  bool list_templates_done;
+  bool device_ready_;
+  bool version_read_;
+  bool list_templates_done_;
   bool enroll_status_received_ = false;
-  uint16_t device_state;
-  uint8_t n_templates_on_device;
+  uint16_t device_state_;
+  uint8_t n_templates_on_device_;
   void process_state();
 
   //--- HOST functions ---
