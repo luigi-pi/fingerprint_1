@@ -787,15 +787,15 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
       this->text_status_sensor_->publish_state(get_state_str_(status->state));
     }
     if (status->state & STATE_ENROLL) {
-      if (status->state & STATE_APP_FW_READY) {
+      if (status->state & STATE_APP_FW_READY && (status->event == EVENT_NONE)) {
         enrollment_scan_callback_.call(enroll_id);
       }
       if (status->state & STATE_FINGER_DOWN) {
         this->enroll_idle_time_ = millis();
       }
-    }
-    if (status->state & STATE_ENROLL && status->app_fail_code != 0) {
-      this->enrollment_failed_callback_.call(enroll_id);
+      if (status->app_fail_code != 0) {
+        this->enrollment_failed_callback_.call(enroll_id);
+      }
     }
     if (status->state & STATE_APP_FW_READY) {
       this->device_ready = true;
