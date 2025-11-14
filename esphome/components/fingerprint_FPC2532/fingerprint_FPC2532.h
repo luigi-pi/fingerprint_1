@@ -287,5 +287,13 @@ template<typename... Ts> class DeleteAllAction : public Action<Ts...>, public Pa
   }
 };
 
+template<typename... Ts>
+class CancelEnrollmentAction : public Action<Ts...>, public Parented<FingerprintFPC2532Component> {
+ public:
+  void play(Ts... x) override {
+    this->parent_->fpc_cmd_abort();
+    this->parent_->app_state = APP_STATE_WAIT_ABORT;
+  }
+};
 }  // namespace fingerprint_FPC2532
 }  // namespace esphome
