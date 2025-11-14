@@ -271,6 +271,8 @@ async def fingerprint_FPC2532_enroll_to_code(config, action_id, template_arg, ar
     if CONF_FINGER_ID in config:
         template_ = await cg.templatable(config[CONF_FINGER_ID], args, cg.uint16)
         cg.add(var.set_finger_id(template_))
+    else:
+        cg.add(var.set_finger_id(cg.uint16(0)))
     return var
 
 
