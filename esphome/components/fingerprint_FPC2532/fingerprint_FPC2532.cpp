@@ -393,6 +393,9 @@ void FingerprintFPC2532Component::process_state(void) {
           this->fpc_cmd_enroll_request(&id_type);
           this->enroll_request = false;
         } else {
+          if (this->enrolling_binary_sensor_ != nullptr) {
+            this->enrolling_binary_sensor_->publish_state(false);
+          }
           fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
           ESP_LOGI(TAG, "Starting identify");
           next_state = APP_STATE_WAIT_IDENTIFY;
@@ -798,6 +801,9 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
       }
       if (status->app_fail_code != 0) {
         this->enrollment_failed_callback_.call(enroll_id);
+        if (this->enrolling_binary_sensor_ != nullptr) {
+          this->enrolling_binary_sensor_->publish_state(false);
+        }
       }
     }
     if (status->state & STATE_APP_FW_READY) {
