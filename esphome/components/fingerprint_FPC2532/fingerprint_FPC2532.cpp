@@ -787,6 +787,9 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
       this->text_status_sensor_->publish_state(get_state_str_(status->state));
     }
     if (status->state & STATE_ENROLL) {
+      if (status->state & STATE_APP_FW_READY) {
+        enrollment_scan_callback_.call(enroll_id);
+      }
       if (status->state & STATE_FINGER_DOWN) {
         this->enroll_idle_time_ = millis();
       }
@@ -880,7 +883,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_enroll_status(fpc::fpc_
     ESP_LOGI(TAG, "CMD_ENROLL.feedback = %s", get_enroll_feedback_str_(status->feedback));
     ESP_LOGI(TAG, "CMD_ENROLL.samples_remaining = %d", status->samples_remaining);
 
-    enrollment_scan_callback_.call(enroll_id);
+    // enrollment_scan_callback_.call(enroll_id);//useful to recall it everytime a new scan is done
     if (this->enrollment_feedback_ != nullptr) {
       this->enrollment_feedback_->publish_state((uint8_t) status->feedback);
     }
