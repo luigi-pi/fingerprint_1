@@ -374,19 +374,19 @@ void FingerprintFPC2532Component::process_state(void) {
         break;
       }
 
-      if (!this->enrolll_status_received && (this->device_state & STATE_APP_FW_READY) &&
+      if (!this->enroll_status_received_ && (this->device_state & STATE_APP_FW_READY) &&
           (this->device_state & STATE_ENROLL)) {
-        this->enrolll_status_received = true;
-        ESP_LOGD(TAG, "Enrollment acknowledged by firmware. enrolll_status_received = %d", enrolll_status_received);
+        this->enroll_status_received_ = true;
+        ESP_LOGD(TAG, "Enrollment acknowledged by firmware. enroll_status_received_ = %d", enroll_status_received_);
         ESP_LOGD(TAG, "device_state = %s", get_state_str_(device_state).c_str());
       }
 
-      if (this->enrolll_status_received && ((this->device_state & STATE_ENROLL) == 0)) {
-        ESP_LOGI(TAG, "Finger Enrollment done. enrolll_status_received = %d", enrolll_status_received);
+      if (this->enroll_status_received_ && ((this->device_state & STATE_ENROLL) == 0)) {
+        ESP_LOGI(TAG, "Finger Enrollment done. enroll_status_received_ = %d", enroll_status_received_);
         ESP_LOGD(TAG, "device_state = %s", get_state_str_(device_state).c_str());
         this->fpc_cmd_list_templates_request();
         next_state = APP_STATE_WAIT_LIST_TEMPLATES;
-        this->enrolll_status_received = false;
+        this->enroll_status_received_ = false;
       }
 
       break;
@@ -402,6 +402,7 @@ void FingerprintFPC2532Component::process_state(void) {
     case APP_STATE_WAIT_ABORT:
       if ((this->device_state & (STATE_ENROLL | STATE_IDENTIFY)) == 0) {
         ESP_LOGI(TAG, "Operation aborted");
+        enroll_status_received_ = false;
         if (this->enroll_request == true) {
           fpc::fpc_id_type_t id_type = this->id_type_enroll_request;
           ESP_LOGI(TAG, "Starting enroll");
