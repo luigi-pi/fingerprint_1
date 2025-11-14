@@ -381,7 +381,7 @@ void FingerprintFPC2532Component::process_state(void) {
         ESP_LOGD(TAG, "device_state = %s", get_state_str_(device_state).c_str());
       }
 
-      if (this->enroll_status_received && (this->device_state & STATE_ENROLL) == 0) {
+      if (this->enroll_status_received && ((this->device_state & STATE_ENROLL) == 0)) {
         ESP_LOGI(TAG, "Finger Enrollment done. enroll_status_received = %d", enroll_status_received);
         ESP_LOGD(TAG, "device_state = %s", get_state_str_(device_state).c_str());
         this->fpc_cmd_list_templates_request();
