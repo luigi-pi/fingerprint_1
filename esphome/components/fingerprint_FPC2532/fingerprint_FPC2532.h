@@ -35,7 +35,9 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   //--- State Machine Functions/declarations ---
   app_state_t app_state;
   fpc::fpc_id_type_t id_type_enroll_request{0, 0};
+  fpc::fpc_id_type_t id_type_delete_request{0, 0};
   bool enroll_request = false;
+  bool delete_request = false;
 
   void update() override;
   void setup() override;
@@ -239,26 +241,6 @@ class EnrollmentFailedTrigger : public Trigger<uint16_t> {
     parent->add_on_enrollment_failed_callback([this](uint16_t finger_id) { this->trigger(finger_id); });
   }
 };
-/*
-template<typename... Ts> class EnrollmentAction : public Action<Ts...>, public Parented<FingerprintFPC2532Component> {
- public:
-  TEMPLATABLE_VALUE(uint16_t, finger_id)
-
-  void play(Ts... x) override {
-    auto finger_id = this->finger_id_.value(x...);
-    fpc::fpc_id_type_t id_type;
-    if (finger_id) {
-      id_type.type = ID_TYPE_SPECIFIED;
-      id_type.id = finger_id;
-      this->parent_->fpc_cmd_enroll_request(&id_type);
-    } else {
-      id_type.type = ID_TYPE_GENERATE_NEW;
-      id_type.id = 0;
-      this->parent_->fpc_cmd_enroll_request(&id_type);
-    }
-  }
-};
-*/
 
 template<typename... Ts> class EnrollmentAction : public Action<Ts...>, public Parented<FingerprintFPC2532Component> {
  public:
@@ -274,6 +256,31 @@ template<typename... Ts> class EnrollmentAction : public Action<Ts...>, public P
       this->parent_->id_type_enroll_request.type = ID_TYPE_GENERATE_NEW;
       this->parent_->id_type_enroll_request.id = 0;
     }
+    this->parent_->fpc_cmd_abort();
+    this->parent_->app_state = APP_STATE_WAIT_ABORT;
+  }
+};
+
+template<typename... Ts> class DeleteAction : public Action<Ts...>, public Parented<FingerprintFPC2532Component> {
+ public:
+  TEMPLATABLE_VALUE(uint16_t, finger_id)
+
+  void play(Ts... x) override {
+    auto finger_id = this->finger_id_.value(x...);
+    this->parent_->delete_request = true;
+    this->parent_->id_type_delete_request.type = ID_TYPE_SPECIFIED;
+    this->parent_->id_type_delete_request.id = finger_id;
+    this->parent_->fpc_cmd_abort();
+    this->parent_->app_state = APP_STATE_WAIT_ABORT;
+  }
+};
+
+template<typename... Ts> class DeleteAllAction : public Action<Ts...>, public Parented<FingerprintGrowComponent> {
+ public:
+  void play(Ts... x) override {
+    this->parent_->delete_request = true;
+    this->parent_->id_type_delete_request.type = ID_TYPE_ALL;
+    this->parent_->id_type_delete_request.id = 0;
     this->parent_->fpc_cmd_abort();
     this->parent_->app_state = APP_STATE_WAIT_ABORT;
   }

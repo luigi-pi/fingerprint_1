@@ -392,6 +392,12 @@ void FingerprintFPC2532Component::process_state(void) {
           next_state = APP_STATE_WAIT_ENROLL;
           this->fpc_cmd_enroll_request(&id_type);
           this->enroll_request = false;
+        } else if (this->delete_request == true) {
+          fpc::fpc_id_type_t id_type = this->id_type_delete_request;
+          ESP_LOGI(TAG, "Starting delete templates");
+          next_state = APP_STATE_WAIT_DELETE_TEMPLATES;
+          this->fpc_cmd_delete_template_request(&id_type);
+          this->delete_request = false;
         } else {
           if (this->enrolling_binary_sensor_ != nullptr) {
             this->enrolling_binary_sensor_->publish_state(false);
@@ -403,12 +409,13 @@ void FingerprintFPC2532Component::process_state(void) {
         }
       }
       break;
-    // Will run after next status event is received in response to delete template request.
     case APP_STATE_WAIT_DELETE_TEMPLATES: {
-      ESP_LOGI(TAG, "All templates deleted.");
-      this->fpc_hal_delay_ms(20);
-      next_state = APP_STATE_WAIT_LIST_TEMPLATES;
-      this->fpc_cmd_list_templates_request();
+      if (device_ready) {
+        ESP_LOGI(TAG, "template/s deleted.");
+        this->fpc_hal_delay_ms(20);
+        next_state = APP_STATE_WAIT_LIST_TEMPLATES;
+        this->fpc_cmd_list_templates_request();
+      }
       break;
     }
     default:
@@ -808,6 +815,8 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
     }
     if (status->state & STATE_APP_FW_READY) {
       this->device_ready = true;
+    } else {
+      this->device_ready = false;
     }
     if ((this->device_state & STATE_FINGER_DOWN) &&
         (this->device_state & (STATE_IDENTIFY | STATE_ENROLL | STATE_NAVIGATION))) {
