@@ -364,7 +364,7 @@ void FingerprintFPC2532Component::process_state(void) {
         }
       }
       break;
-    case APP_STATE_WAIT_ENROLL:
+    case APP_STATE_WAIT_ENROLL: {
       bool enroll_status_received = false;
       if (millis() - this->enroll_idle_time_ > this->enroll_timeout_ms_) {
         ESP_LOGW(TAG, "Enroll timeout. Aborting operation.");
@@ -383,6 +383,7 @@ void FingerprintFPC2532Component::process_state(void) {
         next_state = APP_STATE_WAIT_LIST_TEMPLATES;
       }
       break;
+    }
     case APP_STATE_WAIT_IDENTIFY:
       if ((this->device_state & STATE_IDENTIFY) == 0) {
         fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
