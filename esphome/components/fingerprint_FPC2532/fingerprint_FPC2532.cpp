@@ -370,7 +370,7 @@ void FingerprintFPC2532Component::process_state(void) {
         fpc_cmd_abort();
         next_state = APP_STATE_WAIT_ABORT;
       }
-      if (((this->device_state & STATE_ENROLL) == 0) && ((this->device_state & APP_STATE_WAIT_READY) == 0)) {
+      if (((this->device_state & STATE_ENROLL) == 0) && ((this->device_state & STATE_APP_FW_READY) == 0)) {
         ESP_LOGI(TAG, "device state? = %s ", get_state_str_(device_state).c_str());
         ESP_LOGI(TAG, "Finger Enrollment done.");
         this->fpc_cmd_list_templates_request();
