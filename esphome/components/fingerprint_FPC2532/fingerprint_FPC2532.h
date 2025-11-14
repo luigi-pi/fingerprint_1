@@ -275,7 +275,7 @@ template<typename... Ts> class DeleteAction : public Action<Ts...>, public Paren
   }
 };
 
-template<typename... Ts> class DeleteAllAction : public Action<Ts...>, public Parented<FingerprintGrowComponent> {
+template<typename... Ts> class DeleteAllAction : public Action<Ts...>, public Parented<FingerprintFPC2532Component> {
  public:
   void play(Ts... x) override {
     this->parent_->delete_request = true;
