@@ -789,6 +789,9 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
     if (status->state & STATE_ENROLL) {
       if (status->state & STATE_APP_FW_READY && (status->event == EVENT_NONE)) {
         enrollment_scan_callback_.call(enroll_id);
+        if (this->enrolling_binary_sensor_ != nullptr) {
+          this->enrolling_binary_sensor_->publish_state(true);
+        }
       }
       if (status->state & STATE_FINGER_DOWN) {
         this->enroll_idle_time_ = millis();
