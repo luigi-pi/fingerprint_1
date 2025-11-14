@@ -788,7 +788,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
     }
     if (status->state & STATE_ENROLL) {
       this->enrollment_feedback_->publish_state((uint8_t) 8);
-      if (status->event & EVENT_FINGER_DETECT) {
+      if (status->status & STATE_FINGER_DOWN) {
         enrollment_scan_callback_.call(enroll_id);
         this->enroll_idle_time_ = millis();
       }
