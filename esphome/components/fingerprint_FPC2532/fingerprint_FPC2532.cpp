@@ -300,6 +300,7 @@ void FingerprintFPC2532Component::setup() {
     this->enrolling_binary_sensor_->publish_state(false);
   }
   // cmd_callbacks.on_status = on_status;
+  fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
   fpc_cmd_status_request();
 }
 
