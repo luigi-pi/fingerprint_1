@@ -365,13 +365,18 @@ void FingerprintFPC2532Component::process_state(void) {
       }
       break;
     case APP_STATE_WAIT_ENROLL:
+      bool enroll_status_received = false;
       if (millis() - this->enroll_idle_time_ > this->enroll_timeout_ms_) {
         ESP_LOGW(TAG, "Enroll timeout. Aborting operation.");
         this->enrollment_failed_callback_.call(0);
         fpc_cmd_abort();
         next_state = APP_STATE_WAIT_ABORT;
+        break;
       }
-      if (((this->device_state & STATE_ENROLL) == 0) && ((this->device_state & STATE_APP_FW_READY) == 0)) {
+      if ((this->device_state & (STATE_ENROLL | STATE_APP_FW_READY)) == (STATE_ENROLL | STATE_APP_FW_READY)) {
+        enroll_status_received = true;
+      }
+      if (((this->device_state & STATE_ENROLL) == 0) && (enroll_status_received)) {
         ESP_LOGI(TAG, "device state? = %s ", get_state_str_(device_state).c_str());
         ESP_LOGI(TAG, "Finger Enrollment done.");
         this->fpc_cmd_list_templates_request();
