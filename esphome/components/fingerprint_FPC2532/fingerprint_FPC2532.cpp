@@ -800,12 +800,12 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
     if (status->state & STATE_APP_FW_READY) {
       this->device_ready = true;
     }
-    if ((this->device_state & (STATE_IDENTIFY | EVENT_FINGER_DETECT)) == (STATE_IDENTIFY | EVENT_FINGER_DETECT)) {
+    if ((this->device_state & STATE_FINGER_DOWN) &&
+        (this->device_state & (STATE_IDENTIFY | STATE_ENROLL | STATE_NAVIGATION))) {
       this->finger_scan_start_callback_.call();
     }
     if ((this->device_state & STATE_IDENTIFY) && (status->app_fail_code != FPC_RESULT_OK)) {
-      uint16_t capture_error = status->app_fail_code;
-      this->finger_scan_invalid_callback_.call(capture_error);
+      this->finger_scan_invalid_callback_.call(status->app_fail_code);
     }
   }
   // modify if callbacks are needed for these events
@@ -883,7 +883,6 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_enroll_status(fpc::fpc_
     ESP_LOGI(TAG, "CMD_ENROLL.feedback = %s", get_enroll_feedback_str_(status->feedback));
     ESP_LOGI(TAG, "CMD_ENROLL.samples_remaining = %d", status->samples_remaining);
 
-    // enrollment_scan_callback_.call(enroll_id);//useful to recall it everytime a new scan is done
     if (this->enrollment_feedback_ != nullptr) {
       this->enrollment_feedback_->publish_state((uint8_t) status->feedback);
     }
@@ -892,21 +891,18 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_enroll_status(fpc::fpc_
     }
   }
 
+  if (status->feedback == ENROLL_FEEDBACK_REJECT_LOW_QUALITY ||
+      status->feedback == ENROLL_FEEDBACK_REJECT_LOW_COVERAGE ||
+      status->feedback == ENROLL_FEEDBACK_REJECT_LOW_MOBILITY || status->feedback == ENROLL_FEEDBACK_REJECT_OTHER) {
+    this->finger_scan_invalid_callback_.call(status->feedback);
+  }
+
   if (status->feedback == ENROLL_FEEDBACK_DONE) {
     this->enrollment_done_callback_.call(enroll_id);
     this->fpc_cmd_list_templates_request();
     this->app_state = APP_STATE_WAIT_LIST_TEMPLATES;
     if (this->enrolling_binary_sensor_ != nullptr) {
       this->enrolling_binary_sensor_->publish_state(false);
-    }
-  } else {
-    if (this->enrolling_binary_sensor_ != nullptr) {
-      this->enrolling_binary_sensor_->publish_state(true);
-      if (status->feedback == ENROLL_FEEDBACK_REJECT_LOW_QUALITY ||
-          status->feedback == ENROLL_FEEDBACK_REJECT_LOW_COVERAGE ||
-          status->feedback == ENROLL_FEEDBACK_REJECT_LOW_MOBILITY || status->feedback == ENROLL_FEEDBACK_REJECT_OTHER) {
-        this->enrollment_failed_callback_.call(enroll_id);
-      }
     }
   }
 
