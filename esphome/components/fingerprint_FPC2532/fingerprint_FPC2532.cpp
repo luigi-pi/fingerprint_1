@@ -300,7 +300,6 @@ void FingerprintFPC2532Component::setup() {
     this->enrolling_binary_sensor_->publish_state(false);
   }
   // cmd_callbacks.on_status = on_status;
-  fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
   fpc_cmd_status_request();
 }
 
@@ -329,7 +328,8 @@ void FingerprintFPC2532Component::process_state(void) {
   switch (app_state) {
     case APP_STATE_WAIT_READY:
       if (this->device_ready) {
-        if (this->delay_elapsed(3000)) {  // Wait for the device to be fully ready.
+        fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
+        if (this->delay_elapsed(3000)) {                              // Wait for the device to be fully ready.
           next_state = APP_STATE_WAIT_VERSION;
           this->fpc_cmd_version_request();
         }
