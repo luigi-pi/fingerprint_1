@@ -378,10 +378,12 @@ void FingerprintFPC2532Component::process_state(void) {
           (this->device_state & STATE_ENROLL)) {
         this->enroll_status_received_ = true;
         ESP_LOGD(TAG, "Enrollment acknowledged by firmware. enroll_status_received_ = %d", enroll_status_received_);
+        ESP_LOGD(TAG, "device_state = %s", get_state_str_(device_state).c_str());
       }
 
       if (this->enroll_status_received_ && (this->device_state & STATE_ENROLL) == 0) {
         ESP_LOGI(TAG, "Finger Enrollment done. enroll_status_received_ = %d", enroll_status_received_);
+        ESP_LOGD(TAG, "device_state = %s", get_state_str_(device_state).c_str());
         this->fpc_cmd_list_templates_request();
         next_state = APP_STATE_WAIT_LIST_TEMPLATES;
         this->enroll_status_received_ = false;
