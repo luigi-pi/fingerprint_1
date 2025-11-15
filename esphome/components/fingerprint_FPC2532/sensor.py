@@ -9,6 +9,7 @@ from esphome.const import (
     CONF_NUM_SCANS,
     CONF_SECURITY_LEVEL,
     CONF_STATUS,
+    ENTITY_CATEGORY_CONFIG,
     ENTITY_CATEGORY_DIAGNOSTIC,
     ICON_ACCOUNT,
     ICON_ACCOUNT_CHECK,
@@ -21,8 +22,8 @@ from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
 CONF_ENROLLMENT_FEEDBACK = "enrollment_feedback"
 ICON_FEEDBACK = "mdi:message-alert-outline"
-ENTITY_CATEGORY_VERSION = "version"
-ENTITY_CATEGORY_CONFIG = "settings"
+# ENTITY_CATEGORY_VERSION = "version"
+# ENTITY_CATEGORY_CONFIG = "settings"
 
 ICON_CONFIG = "mdi:settings"
 CONF_LOCKOUT_TIME = "lockout_time_s"
@@ -31,6 +32,8 @@ CONF_IDLE_TIME_BEFORE_SLEEP = "idle_time_before_sleep_ms"
 CONF_UART_DLY_BEFORE_TX = "uart_dly_before_tx_ms"
 CONF_SCAN_INTERVAL = "scan_interval_ms"
 CONF_BAUD_RATE = "baud_rate"
+
+VALID_BAUD_RATES = [9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600]
 
 DEPENDENCIES = ["fingerprint_FPC2532"]
 
