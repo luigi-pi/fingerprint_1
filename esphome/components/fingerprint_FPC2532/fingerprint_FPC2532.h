@@ -49,6 +49,9 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void set_text_status_sensor(text_sensor::TextSensor *text_status_sensor) {
     this->text_status_sensor_ = text_status_sensor;
   }
+  void set_unique_id_sensor(text_sensor::TextSensor *sensor) { this->unique_id_sensor_ = sensor; }
+
+  void set_version_sensor(text_sensor::TextSensor *sensor) { this->version_sensor_ = sensor; }
   void set_fingerprint_count_sensor(sensor::Sensor *fingerprint_count_sensor) {
     this->fingerprint_count_sensor_ = fingerprint_count_sensor;
   }
