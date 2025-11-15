@@ -21,13 +21,17 @@ def validate_icons(config):
     return config
 
 
-CONFIG_SCHEMA = binary_sensor.binary_sensor_schema().extend(
-    {
-        cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(
-            FingerprintFPC2532Component
-        ),
-        cv.Optional(CONF_ICON, default=ICON_CONFIG): cv.icon,
-    }.add_extra(validate_icons)
+CONFIG_SCHEMA = (
+    binary_sensor.binary_sensor_schema()
+    .extend(
+        {
+            cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(
+                FingerprintFPC2532Component
+            ),
+            cv.Optional(CONF_ICON, default=ICON_CONFIG): cv.icon,
+        }
+    )
+    .add_extra(validate_icons)
 )
 
 
