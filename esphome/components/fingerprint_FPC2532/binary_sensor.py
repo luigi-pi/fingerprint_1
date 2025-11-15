@@ -28,16 +28,21 @@ CONFIG_SCHEMA = binary_sensor.binary_sensor_schema().extend(
 async def to_code(config):
     hub = await cg.get_variable(config[CONF_FINGERPRINT_FPC2532_ID])
 
-    # Main enrolling sensor from YAML
-    var = await binary_sensor.new_binary_sensor(config)
-    cg.add(hub.set_enrolling_binary_sensor(var))
+    # This is the user-defined binary sensor from YAML
+    main_sensor = await binary_sensor.new_binary_sensor(config)
+    cg.add(hub.set_enrolling_binary_sensor(main_sensor))
 
-    # Internal config-related binary sensors
-    set_status_sensor = cg.new_Pvariable("set_status_sensor")
+    # ---- Internal config-related binary sensors ----
+    # These are NOT in YAML -> must use BinarySensor.new()
+
+    set_status_sensor = binary_sensor.BinarySensor.new()
+    cg.add(set_status_sensor.set_icon(ICON_CONFIG))
     cg.add(hub.set_status_at_boot_sensor(set_status_sensor))
 
-    stop_mode_sensor = cg.new_Pvariable("stop_mode_sensor")
+    stop_mode_sensor = binary_sensor.BinarySensor.new()
+    cg.add(stop_mode_sensor.set_icon(ICON_CONFIG))
     cg.add(hub.set_stop_mode_uart_sensor(stop_mode_sensor))
 
-    uart_irq_sensor = cg.new_Pvariable("uart_irq_sensor")
+    uart_irq_sensor = binary_sensor.BinarySensor.new()
+    cg.add(uart_irq_sensor.set_icon(ICON_CONFIG))
     cg.add(hub.set_uart_irq_before_tx_sensor(uart_irq_sensor))
