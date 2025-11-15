@@ -23,4 +23,4 @@ CONFIG_SCHEMA = text_sensor.text_sensor_schema().extend(
 async def to_code(config):
     hub = await cg.get_variable(config[CONF_FINGERPRINT_FPC2532_ID])
     sens = await text_sensor.new_text_sensor(config)
-    cg.add(getattr(hub, f"set_{config.id}_sensor")(sens))
+    cg.add(getattr(hub, f"set_{config['id']}_sensor")(sens))
