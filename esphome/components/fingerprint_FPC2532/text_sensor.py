@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 from esphome.components import text_sensor
 import esphome.config_validation as cv
-from esphome.const import ENTITY_CATEGORY_CONFIG, ENTITY_CATEGORY_DIAGNOSTIC
+from esphome.const import ENTITY_CATEGORY_DIAGNOSTIC
 
 from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
@@ -21,10 +21,10 @@ CONFIG_SCHEMA = cv.Schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
         cv.Optional(CONF_UNIQUE_ID): text_sensor.text_sensor_schema(
-            entity_category=ENTITY_CATEGORY_CONFIG,
+            # entity_category=ENTITY_CATEGORY_CONFIG,
         ),
         cv.Optional(CONF_VERSION): text_sensor.text_sensor_schema(
-            entity_category=ENTITY_CATEGORY_CONFIG,
+            # entity_category=ENTITY_CATEGORY_CONFIG,
         ),
     }
 )

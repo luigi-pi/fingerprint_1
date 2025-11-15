@@ -42,7 +42,7 @@ async def to_code(config):
     stop_mode_sensor = await binary_sensor.new_binary_sensor(
         {
             CONF_ICON: ICON_CONFIG,
-            "entity_category": ENTITY_CATEGORY_CONFIG,
+            # "entity_category": ENTITY_CATEGORY_CONFIG,
         }
     )
     cg.add(hub.set_stop_mode_uart_sensor(stop_mode_sensor))
