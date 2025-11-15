@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 from esphome.components import binary_sensor
 import esphome.config_validation as cv
-from esphome.const import CONF_ICON, ENTITY_CATEGORY_CONFIG, ICON_KEY_PLUS
+from esphome.const import CONF_ICON, ICON_KEY_PLUS
 
 from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
@@ -27,30 +27,17 @@ CONFIG_SCHEMA = binary_sensor.binary_sensor_schema().extend(
 
 async def to_code(config):
     hub = await cg.get_variable(config[CONF_FINGERPRINT_FPC2532_ID])
+
+    # Main enrolling sensor from YAML
     var = await binary_sensor.new_binary_sensor(config)
     cg.add(hub.set_enrolling_binary_sensor(var))
 
-    # Config-related binary sensors
-    set_status_sensor = await binary_sensor.new_binary_sensor(
-        {
-            CONF_ICON: ICON_CONFIG,
-            "entity_category": ENTITY_CATEGORY_CONFIG,
-        }
-    )
+    # Internal config-related binary sensors
+    set_status_sensor = cg.new_Pvariable("set_status_sensor")
     cg.add(hub.set_status_at_boot_sensor(set_status_sensor))
 
-    stop_mode_sensor = await binary_sensor.new_binary_sensor(
-        {
-            CONF_ICON: ICON_CONFIG,
-            # "entity_category": ENTITY_CATEGORY_CONFIG,
-        }
-    )
+    stop_mode_sensor = cg.new_Pvariable("stop_mode_sensor")
     cg.add(hub.set_stop_mode_uart_sensor(stop_mode_sensor))
 
-    uart_irq_sensor = await binary_sensor.new_binary_sensor(
-        {
-            CONF_ICON: ICON_CONFIG,
-            "entity_category": ENTITY_CATEGORY_CONFIG,
-        }
-    )
+    uart_irq_sensor = cg.new_Pvariable("uart_irq_sensor")
     cg.add(hub.set_uart_irq_before_tx_sensor(uart_irq_sensor))
