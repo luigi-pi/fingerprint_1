@@ -883,8 +883,17 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_version(fpc::fpc_cmd_hd
     ESP_LOGI(TAG, "CMD_VERSION.version_str_len = %d", ver->version_str_len);
     ESP_LOGI(TAG, "CMD_VERSION.version = %s", ver->version_str);
     this->version_read_ = true;
-  }
 
+    if (this->unique_id_sensor_ != nullptr) {
+      char buf[25];
+      snprintf(buf, sizeof(buf), "%08X%08X%08X", ver->mcu_unique_id[0], ver->mcu_unique_id[1], ver->mcu_unique_id[2]);
+      this->unique_id_sensor_->publish_state(buf);
+    }
+
+    if (this->version_sensor_ != nullptr) {
+      this->version_sensor_->publish_state(ver->version_str);
+    }
+  }
   if (cmd_callbacks.on_version) {
     cmd_callbacks.on_version(ver->version_str);
   }
@@ -1067,6 +1076,42 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_get_system_config(fpc::
     ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.idfy_max_consecutive_fails = %d", cmd_cfg->cfg.idfy_max_consecutive_fails);
     ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.idfy_lockout_time_s = %d s", cmd_cfg->cfg.idfy_lockout_time_s);
     ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.idle_time_before_sleep_ms = %d ms", cmd_cfg->cfg.idle_time_before_sleep_ms);
+
+    if (this->scan_interval_ms_sensor_ != nullptr) {
+      this->scan_interval_ms_sensor_->publish_state(cmd_cfg->cfg.finger_scan_interval_ms);
+
+      if (this->uart_dly_before_tx_ms_sensor_ != nullptr) {
+        this->uart_dly_before_tx_ms_sensor_->publish_state(cmd_cfg->cfg.uart_delay_before_irq_ms);
+      }
+
+      if (this->idle_time_before_sleep_ms_sensor_ != nullptr) {
+        this->idle_time_before_sleep_ms_sensor_->publish_state(cmd_cfg->cfg.idle_time_before_sleep_ms);
+      }
+
+      if (this->lockout_after_nr_of_fails_sensor_ != nullptr) {
+        this->lockout_after_nr_of_fails_sensor_->publish_state(cmd_cfg->cfg.idfy_max_consecutive_fails);
+      }
+
+      if (this->lockout_time_s_sensor_ != nullptr) {
+        this->lockout_time_s_sensor_->publish_state(cmd_cfg->cfg.idfy_lockout_time_s);
+      }
+
+      if (this->baud_rate_sensor_ != nullptr) {
+        this->baud_rate_sensor_->publish_state(cmd_cfg->cfg.uart_baudrate);
+      }
+
+      if (this->status_at_boot_sensor_ != nullptr) {
+        this->status_at_boot_sensor_->publish_state(cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT);
+      }
+
+      if (this->stop_mode_uart_sensor_ != nullptr) {
+        this->stop_mode_uart_sensor_->publish_state(cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IN_STOP_MODE);
+      }
+
+      if (this->uart_irq_before_tx_sensor_ != nullptr) {
+        this->uart_irq_before_tx_sensor_->publish_state(cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IRQ_BEFORE_TX);
+      }
+    }
   }
 
   if (cmd_callbacks.on_system_config_get) {

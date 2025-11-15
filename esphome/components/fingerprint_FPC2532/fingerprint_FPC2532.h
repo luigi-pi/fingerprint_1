@@ -126,9 +126,23 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   GPIOPin *sensor_power_pin_{nullptr};
   sensor::Sensor *status_sensor_{nullptr};
   text_sensor::TextSensor *text_status_sensor_{nullptr};
+  text_sensor::TextSensor *unique_id_sensor_{nullptr};
+  text_sensor::TextSensor *version_sensor_{nullptr};
   sensor::Sensor *fingerprint_count_sensor_{nullptr};
   sensor::Sensor *enrollment_feedback_{nullptr};
   sensor::Sensor *num_scans_{nullptr};
+
+  sensor::Sensor *scan_interval_ms_sensor_{nullptr};
+  sensor::Sensor *uart_dly_before_tx_ms_sensor_{nullptr};
+  sensor::Sensor *idle_time_before_sleep_ms_sensor_{nullptr};
+  sensor::Sensor *lockout_after_nr_of_fails_sensor_{nullptr};
+  sensor::Sensor *lockout_time_s_sensor_{nullptr};
+  sensor::Sensor *baud_rate_sensor_{nullptr};
+
+  binary_sensor::BinarySensor *status_at_boot_sensor_{nullptr};
+  binary_sensor::BinarySensor *stop_mode_uart_sensor_{nullptr};
+  binary_sensor::BinarySensor *uart_irq_before_tx_sensor_{nullptr};
+
   // sensor::Sensor *capacity_sensor_{nullptr};
   // sensor::Sensor *security_level_sensor_{nullptr};
   sensor::Sensor *last_finger_id_sensor_{nullptr};

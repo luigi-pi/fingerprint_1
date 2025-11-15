@@ -21,6 +21,16 @@ from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
 CONF_ENROLLMENT_FEEDBACK = "enrollment_feedback"
 ICON_FEEDBACK = "mdi:message-alert-outline"
+ENTITY_CATEGORY_VERSION = "version"
+ENTITY_CATEGORY_CONFIG = "settings"
+
+ICON_CONFIG = "mdi:settings"
+CONF_LOCKOUT_TIME = "lockout_time_s"
+CONF_LOCKOUT_AFTER_NR_OF_FAILS = "lockout_after_nr_of_fails"
+CONF_IDLE_TIME_BEFORE_SLEEP = "idle_time_before_sleep_ms"
+CONF_UART_DLY_BEFORE_TX = "uart_dly_before_tx_ms"
+CONF_SCAN_INTERVAL = "scan_interval_ms"
+CONF_BAUD_RATE = "baud_rate"
 
 DEPENDENCIES = ["fingerprint_FPC2532"]
 
@@ -68,6 +78,36 @@ CONFIG_SCHEMA = cv.Schema(
             accuracy_decimals=0,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
+        cv.Optional(CONF_SCAN_INTERVAL): sensor.sensor_schema(
+            icon=ICON_CONFIG,
+            accuracy_decimals=0,
+            entity_category=ENTITY_CATEGORY_CONFIG,
+        ),
+        cv.Optional(CONF_UART_DLY_BEFORE_TX): sensor.sensor_schema(
+            icon=ICON_CONFIG,
+            accuracy_decimals=0,
+            entity_category=ENTITY_CATEGORY_CONFIG,
+        ),
+        cv.Optional(CONF_IDLE_TIME_BEFORE_SLEEP): sensor.sensor_schema(
+            icon=ICON_CONFIG,
+            accuracy_decimals=0,
+            entity_category=ENTITY_CATEGORY_CONFIG,
+        ),
+        cv.Optional(CONF_LOCKOUT_AFTER_NR_OF_FAILS): sensor.sensor_schema(
+            icon=ICON_CONFIG,
+            accuracy_decimals=0,
+            entity_category=ENTITY_CATEGORY_CONFIG,
+        ),
+        cv.Optional(CONF_LOCKOUT_TIME): sensor.sensor_schema(
+            icon=ICON_CONFIG,
+            accuracy_decimals=0,
+            entity_category=ENTITY_CATEGORY_CONFIG,
+        ),
+        cv.Optional(CONF_BAUD_RATE): sensor.sensor_schema(
+            icon=ICON_CONFIG,
+            accuracy_decimals=0,
+            entity_category=ENTITY_CATEGORY_CONFIG,
+        ),
     }
 )
 
@@ -84,6 +124,12 @@ async def to_code(config):
         CONF_LAST_CONFIDENCE,
         CONF_NUM_SCANS,
         CONF_ENROLLMENT_FEEDBACK,
+        CONF_SCAN_INTERVAL,
+        CONF_UART_DLY_BEFORE_TX,
+        CONF_IDLE_TIME_BEFORE_SLEEP,
+        CONF_LOCKOUT_AFTER_NR_OF_FAILS,
+        CONF_LOCKOUT_TIME,
+        CONF_BAUD_RATE,
     ]:
         if key not in config:
             continue
