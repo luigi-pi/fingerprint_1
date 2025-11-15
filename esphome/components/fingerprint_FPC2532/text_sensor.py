@@ -11,7 +11,7 @@ from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
 DEPENDENCIES = ["fingerprint_FPC2532"]
 
-CONFIG_SCHEMA = cv.Schema(
+CONFIG_SCHEMA = text_sensor.text_sensor_schema().extend(
     {
         cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(
             FingerprintFPC2532Component
