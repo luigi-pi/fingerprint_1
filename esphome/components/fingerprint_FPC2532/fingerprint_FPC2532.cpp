@@ -1080,9 +1080,8 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_get_system_config(fpc::
     if (this->scan_interval_ms_sensor_ != nullptr) {
       this->scan_interval_ms_sensor_->publish_state(cmd_cfg->cfg.finger_scan_interval_ms);
 
-      if (this->uart_dly_before_tx_ms_sensor_ != nullptr) {
+      if (this->uart_dly_before_tx_ms_sensor_ != nullptr)
         this->uart_dly_before_tx_ms_sensor_->publish_state(cmd_cfg->cfg.uart_delay_before_irq_ms);
-      }
 
       if (this->idle_time_before_sleep_ms_sensor_ != nullptr) {
         this->idle_time_before_sleep_ms_sensor_->publish_state(cmd_cfg->cfg.idle_time_before_sleep_ms);
@@ -1099,18 +1098,15 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_get_system_config(fpc::
       if (this->baud_rate_sensor_ != nullptr) {
         this->baud_rate_sensor_->publish_state(cmd_cfg->cfg.uart_baudrate);
       }
+      if (this->status_at_boot_sensor_)
+        this->status_at_boot_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT) != 0);
 
-      if (this->status_at_boot_sensor_ != nullptr) {
-        this->status_at_boot_sensor_->publish_state(cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT);
-      }
+      if (this->stop_mode_uart_sensor_)
+        this->stop_mode_uart_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IN_STOP_MODE) != 0);
 
-      if (this->stop_mode_uart_sensor_ != nullptr) {
-        this->stop_mode_uart_sensor_->publish_state(cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IN_STOP_MODE);
-      }
-
-      if (this->uart_irq_before_tx_sensor_ != nullptr) {
-        this->uart_irq_before_tx_sensor_->publish_state(cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IRQ_BEFORE_TX);
-      }
+      if (this->uart_irq_before_tx_sensor_)
+        this->uart_irq_before_tx_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IRQ_BEFORE_TX) !=
+                                                        0);
     }
   }
 
