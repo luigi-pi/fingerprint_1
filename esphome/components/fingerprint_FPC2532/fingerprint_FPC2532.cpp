@@ -1099,8 +1099,9 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_get_system_config(fpc::
         this->baud_rate_sensor_->publish_state(cmd_cfg->cfg.uart_baudrate);
       }
       if (this->status_at_boot_sensor_)
-        // this->status_at_boot_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT) != 0);
-        this->status_at_boot_sensor_->publish_state(false);
+        ESP_LOGW(TAG, "BOOT c'è");
+      // this->status_at_boot_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT) != 0);
+      this->status_at_boot_sensor_->publish_state(false);
 
       if (this->stop_mode_uart_sensor_)
         this->stop_mode_uart_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IN_STOP_MODE) != 0);
