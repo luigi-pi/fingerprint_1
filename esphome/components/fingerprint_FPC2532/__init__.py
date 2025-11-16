@@ -25,7 +25,7 @@ from esphome.const import (
 
 CODEOWNERS = ["@OnFreund", "@loongyh", "@alexborro"]
 DEPENDENCIES = ["uart"]
-AUTO_LOAD = ["binary_sensor", "sensor", "text_sensor"]
+AUTO_LOAD = ["binary_sensor", "sensor", "text_sensor", "switch"]
 MULTI_CONF = True
 
 CONF_FINGERPRINT_FPC2532_ID = "fingerprint_FPC2532_id"

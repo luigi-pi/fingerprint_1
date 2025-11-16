@@ -9,6 +9,7 @@ from esphome.const import (
     CONF_NUM_SCANS,
     CONF_SECURITY_LEVEL,
     CONF_STATUS,
+    ENTITY_CATEGORY_CONFIG,
     ENTITY_CATEGORY_DIAGNOSTIC,
     ICON_ACCOUNT,
     ICON_ACCOUNT_CHECK,
@@ -21,8 +22,6 @@ from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
 CONF_ENROLLMENT_FEEDBACK = "enrollment_feedback"
 ICON_FEEDBACK = "mdi:message-alert-outline"
-# ENTITY_CATEGORY_VERSION = "version"
-# ENTITY_CATEGORY_CONFIG = "settings"
 
 ICON_CONFIG = "mdi:settings"
 CONF_LOCKOUT_TIME = "lockout_time_s"
@@ -83,32 +82,32 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_SCAN_INTERVAL): sensor.sensor_schema(
             icon=ICON_CONFIG,
             accuracy_decimals=0,
-            # entity_category=ENTITY_CATEGORY_CONFIG,
+            entity_category=ENTITY_CATEGORY_CONFIG,
         ),
         cv.Optional(CONF_UART_DLY_BEFORE_TX): sensor.sensor_schema(
             icon=ICON_CONFIG,
             accuracy_decimals=0,
-            # entity_category=ENTITY_CATEGORY_CONFIG,
+            entity_category=ENTITY_CATEGORY_CONFIG,
         ),
         cv.Optional(CONF_IDLE_TIME_BEFORE_SLEEP): sensor.sensor_schema(
             icon=ICON_CONFIG,
             accuracy_decimals=0,
-            # entity_category=ENTITY_CATEGORY_CONFIG,
+            entity_category=ENTITY_CATEGORY_CONFIG,
         ),
         cv.Optional(CONF_LOCKOUT_AFTER_NR_OF_FAILS): sensor.sensor_schema(
             icon=ICON_CONFIG,
             accuracy_decimals=0,
-            # entity_category=ENTITY_CATEGORY_CONFIG,
+            entity_category=ENTITY_CATEGORY_CONFIG,
         ),
         cv.Optional(CONF_LOCKOUT_TIME): sensor.sensor_schema(
             icon=ICON_CONFIG,
             accuracy_decimals=0,
-            # entity_category=ENTITY_CATEGORY_CONFIG,
+            entity_category=ENTITY_CATEGORY_CONFIG,
         ),
         cv.Optional(CONF_BAUD_RATE): sensor.sensor_schema(
             icon=ICON_CONFIG,
             accuracy_decimals=0,
-            # entity_category=ENTITY_CATEGORY_CONFIG,
+            entity_category=ENTITY_CATEGORY_CONFIG,
         ),
     }
 )

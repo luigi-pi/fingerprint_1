@@ -5,6 +5,7 @@
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
+#include "esphome/components/switch/switch.h"
 #include "esphome/components/uart/uart.h"
 #include "esphome/components/light/light_state.h"
 #include "esphome/components/light/automation.h"
@@ -27,7 +28,8 @@ typedef enum {
   APP_STATE_WAIT_ENROLL,
   APP_STATE_WAIT_IDENTIFY,
   APP_STATE_WAIT_ABORT,
-  APP_STATE_WAIT_DELETE_TEMPLATES
+  APP_STATE_WAIT_DELETE_TEMPLATES,
+  APP_STATE_WAIT_CONFIG
 } app_state_t;
 
 class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDevice {
@@ -64,14 +66,14 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void set_enrolling_binary_sensor(binary_sensor::BinarySensor *enrolling_binary_sensor) {
     this->enrolling_binary_sensor_ = enrolling_binary_sensor;
   }
-  void set_status_at_boot_sensor(binary_sensor::BinarySensor *status_at_boot_sensor) {
-    this->status_at_boot_sensor_ = status_at_boot_sensor;
+  void set_status_at_boot_switch(switch_::Switch *status_at_boot_switch) {
+    this->status_at_boot_switch_ = status_at_boot_switch;
   }
-  void set_stop_mode_uart_sensor(binary_sensor::BinarySensor *stop_mode_uart_sensor) {
-    this->stop_mode_uart_sensor_ = stop_mode_uart_sensor;
+  void set_stop_mode_uart_switch(switch_::Switch *stop_mode_uart_switch) {
+    this->stop_mode_uart_switch_ = stop_mode_uart_switch;
   }
-  void set_uart_irq_before_tx_sensor(binary_sensor::BinarySensor *uart_irq_before_tx_sensor) {
-    this->uart_irq_before_tx_sensor_ = uart_irq_before_tx_sensor;
+  void set_uart_irq_before_tx_switch(switch_::Switch *uart_irq_before_tx_switch) {
+    this->uart_irq_before_tx_switch_ = uart_irq_before_tx_switch;
   }
   void set_scan_interval_ms_sensor(sensor::Sensor *scan_interval_ms_sensor) {
     this->scan_interval_ms_sensor_ = scan_interval_ms_sensor;
@@ -148,6 +150,10 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   }
 
  protected:
+  fpc::fpc_system_config_t current_config_;
+  fpc::fpc_result_t config_received;
+  bool status_at_boot = false;
+  bool switch_state = false;
   uint32_t start_{0};         // per debug
   uint32_t delay_until_ = 0;  // for non-blocking delays
   uint16_t enroll_id;
@@ -171,9 +177,9 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   sensor::Sensor *lockout_time_s_sensor_{nullptr};
   sensor::Sensor *baud_rate_sensor_{nullptr};
 
-  binary_sensor::BinarySensor *status_at_boot_sensor_{nullptr};
-  binary_sensor::BinarySensor *stop_mode_uart_sensor_{nullptr};
-  binary_sensor::BinarySensor *uart_irq_before_tx_sensor_{nullptr};
+  switch_::Switch *status_at_boot_switch_{nullptr};
+  switch_::Switch *stop_mode_uart_switch_{nullptr};
+  switch_::Switch *uart_irq_before_tx_switch_{nullptr};
 
   // sensor::Sensor *capacity_sensor_{nullptr};
   // sensor::Sensor *security_level_sensor_{nullptr};

@@ -204,6 +204,8 @@ static const char *app_state_wait_str_(uint16_t app_state) {
       return "wait for Abort";
     case APP_STATE_WAIT_DELETE_TEMPLATES:
       return "wait to Delete Templates";
+    case APP_STATE_WAIT_CONFIG:
+      return "wait to receive config";
   }
   return "app state Unknown";
 }
@@ -298,8 +300,14 @@ void FingerprintFPC2532Component::setup() {
   if (this->enrolling_binary_sensor_ != nullptr) {
     this->enrolling_binary_sensor_->publish_state(false);
   }
-  // cmd_callbacks.on_status = on_status;
   fpc_cmd_status_request();
+  // CONFIG CALLBACKS
+  this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
+    this->config_received = fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_CUSTOM);  // read current
+    this->app_state = APP_STATE_WAIT_CONFIG;
+    this->status_at_boot = true;
+    this->switch_state = state;
+  });
 }
 
 /*
@@ -432,6 +440,24 @@ void FingerprintFPC2532Component::process_state(void) {
       }
       break;
     }
+    case APP_STATE_WAIT_CONFIG:
+      if (this->config_received == FPC_RESULT_OK) {
+        if (this->delay_elapsed(1000)) {  // Wait for the device to be fully ready.
+          if (this->status_at_boot) {
+            if (this->switch_state)
+              this->current_config_.sys_flags |= CFG_SYS_FLAG_STATUS_EVT_AT_BOOT;
+
+            else
+              this->current_config_.sys_flags &= ~CFG_SYS_FLAG_STATUS_EVT_AT_BOOT;
+            this->status_at_boot_switch_->publish_state(switch_state);
+          }
+          fpc_cmd_system_config_set_request(&this->current_config_);
+          this->status_at_boot = false;
+          next_state = APP_STATE_WAIT_IDENTIFY;
+        }
+      }
+      break;
+
     default:
       break;
   }
@@ -1094,15 +1120,18 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_get_system_config(fpc::
 
     if (this->baud_rate_sensor_ != nullptr)
       this->baud_rate_sensor_->publish_state(cmd_cfg->cfg.uart_baudrate);
+    /*
+        if (this->status_at_boot_sensor_ != nullptr)
+          this->status_at_boot_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT) != 0);
 
-    if (this->status_at_boot_sensor_ != nullptr)
-      this->status_at_boot_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT) != 0);
+        if (this->stop_mode_uart_sensor_ != nullptr)
+          this->stop_mode_uart_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IN_STOP_MODE) != 0);
 
-    if (this->stop_mode_uart_sensor_ != nullptr)
-      this->stop_mode_uart_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IN_STOP_MODE) != 0);
-
-    if (this->uart_irq_before_tx_sensor_ != nullptr)
-      this->uart_irq_before_tx_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IRQ_BEFORE_TX) != 0);
+        if (this->uart_irq_before_tx_sensor_ != nullptr)
+          this->uart_irq_before_tx_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IRQ_BEFORE_TX) !=
+       0);
+     */
+    this->current_config_ = cmd_cfg->cfg;
   }
 
   if (cmd_callbacks.on_system_config_get) {

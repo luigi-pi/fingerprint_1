@@ -24,7 +24,7 @@ from esphome.const import (
     CONF_TRIGGER_ID,
 )
 
-CODEOWNERS = ["@OnFreund", "@loongyh", "@alexborro"]
+CODEOWNERS = ["@Luigi-pi"]
 DEPENDENCIES = ["uart"]
 AUTO_LOAD = ["binary_sensor", "sensor"]
 MULTI_CONF = True
