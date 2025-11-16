@@ -337,9 +337,8 @@ class CancelEnrollmentAction : public Action<Ts...>, public Parented<Fingerprint
  public:
   void play(Ts... x) override {
     this->parent_->fpc_cmd_abort();
-    this->parent_
-        ->fpc_cmd_system_config_get_request(fpc::FPC_SYS_CFG_TYPE_CUSTOM)  // DBUG only, delete this line
-        this->parent_->app_state = APP_STATE_WAIT_ABORT;
+    this->parent_->fpc_cmd_system_config_get_request(fpc::FPC_SYS_CFG_TYPE_CUSTOM);  // DBUG only, delete this line
+    this->parent_->app_state = APP_STATE_WAIT_ABORT;
   }
 };
 }  // namespace fingerprint_FPC2532
