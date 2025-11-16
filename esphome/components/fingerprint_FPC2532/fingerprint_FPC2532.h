@@ -97,6 +97,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   bool delay_elapsed(uint32_t duration_ms);
   // request public functions
   fpc::fpc_result_t fpc_cmd_abort(void);
+  fpc::fpc_result_t fpc_cmd_system_config_get_request(uint8_t type);
   // fpc::fpc_result_t fpc_cmd_enroll_request(fpc::fpc_id_type_t *id);
   //  Callbacks
   typedef struct {
@@ -211,7 +212,6 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   fpc::fpc_result_t fpc_cmd_delete_template_request(fpc::fpc_id_type_t *id);
   fpc::fpc_result_t fpc_cmd_reset_request(void);
   fpc::fpc_result_t fpc_cmd_system_config_set_request(fpc::fpc_system_config_t *cfg);
-  fpc::fpc_result_t fpc_cmd_system_config_get_request(uint8_t type);
   // receive
   fpc::fpc_result_t fpc_host_sample_handle_rx_data(void);
   fpc::fpc_result_t parse_cmd(uint8_t *frame_payload, std::size_t size);
