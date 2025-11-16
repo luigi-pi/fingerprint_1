@@ -97,7 +97,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   bool delay_elapsed(uint32_t duration_ms);
   // request public functions
   fpc::fpc_result_t fpc_cmd_abort(void);
-  fpc::fpc_result_t fpc_cmd_system_config_get_request(uint8_t type);
+  fpc::fpc_result_t fpc_cmd_system_config_get_request(uint8_t type);  // for debug?
   // fpc::fpc_result_t fpc_cmd_enroll_request(fpc::fpc_id_type_t *id);
   //  Callbacks
   typedef struct {
