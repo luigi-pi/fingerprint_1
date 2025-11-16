@@ -64,6 +64,11 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void set_enrolling_binary_sensor(binary_sensor::BinarySensor *enrolling_binary_sensor) {
     this->enrolling_binary_sensor_ = enrolling_binary_sensor;
   }
+  void set_status_at_boot_sensor(binary_sensor::BinarySensor *sensor) { this->status_at_boot_sensor_ = sensor; }
+
+  void set_stop_mode_uart_sensor(binary_sensor::BinarySensor *sensor) { this->stop_mode_uart_sensor_ = sensor; }
+
+  void set_uart_irq_before_tx_sensor(binary_sensor::BinarySensor *sensor) { this->uart_irq_before_tx_sensor_ = sensor; }
 
   void set_status_at_boot_sensor(binary_sensor::BinarySensor *status_at_boot_sensor) {
     this->status_at_boot_sensor_ = status_at_boot_sensor;
@@ -168,7 +173,6 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   sensor::Sensor *fingerprint_count_sensor_{nullptr};
   sensor::Sensor *enrollment_feedback_{nullptr};
   sensor::Sensor *num_scans_{nullptr};
-
   sensor::Sensor *scan_interval_ms_sensor_{nullptr};
   sensor::Sensor *uart_dly_before_tx_ms_sensor_{nullptr};
   sensor::Sensor *idle_time_before_sleep_ms_sensor_{nullptr};
