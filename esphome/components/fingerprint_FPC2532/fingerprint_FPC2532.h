@@ -49,8 +49,8 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void set_text_status_sensor(text_sensor::TextSensor *text_status_sensor) {
     this->text_status_sensor_ = text_status_sensor;
   }
-  void set_unique_id_sensor(text_sensor::TextSensor *sensor) { this->unique_id_sensor_ = sensor; }
-  void set_version_sensor(text_sensor::TextSensor *sensor) { this->version_sensor_ = sensor; }
+  void set_unique_id_sensor(text_sensor::TextSensor *unique_id_sensor) { this->unique_id_sensor_ = unique_id_sensor; }
+  void set_version_sensor(text_sensor::TextSensor *version_sensor) { this->version_sensor_ = version_sensor; }
   void set_fingerprint_count_sensor(sensor::Sensor *fingerprint_count_sensor) {
     this->fingerprint_count_sensor_ = fingerprint_count_sensor;
   }
@@ -337,7 +337,9 @@ class CancelEnrollmentAction : public Action<Ts...>, public Parented<Fingerprint
  public:
   void play(Ts... x) override {
     this->parent_->fpc_cmd_abort();
-    this->parent_->app_state = APP_STATE_WAIT_ABORT;
+    this->parent_
+        ->fpc_cmd_system_config_get_request(fpc::FPC_SYS_CFG_TYPE_CUSTOM)  // DBUG only, delete this line
+        this->parent_->app_state = APP_STATE_WAIT_ABORT;
   }
 };
 }  // namespace fingerprint_FPC2532
