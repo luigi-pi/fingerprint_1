@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 from esphome.components import binary_sensor
 import esphome.config_validation as cv
-from esphome.const import CONF_ICON, CONF_ID, ICON_KEY_PLUS
+from esphome.const import CONF_ICON, CONF_ID, ENTITY_CATEGORY_CONFIG, ICON_KEY_PLUS
 
 from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
@@ -42,5 +42,12 @@ async def to_code(config):
     if CONF_ICON not in config:
         icon = validate_icons(config)
         cg.add(sens.set_icon(icon))
+
+    if config[CONF_ID] in (
+        CONF_SET_STATUS_AT_BOOT,
+        CONF_STOP_MODE_UART,
+        CONF_UART_IRQ_BEFORE_TX,
+    ):
+        cg.add(sens.set_entity_category(ENTITY_CATEGORY_CONFIG))
 
     cg.add(getattr(hub, f"set_{config[CONF_ID]}_sensor")(sens))
