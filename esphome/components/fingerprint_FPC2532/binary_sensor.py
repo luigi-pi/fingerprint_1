@@ -15,7 +15,7 @@ DEPENDENCIES = ["fingerprint_FPC2532"]
 
 
 def validate_icons(config):
-    sensor_id = config[CONF_ID]
+    sensor_id = str(config[CONF_ID])
     config_icon_group = {
         CONF_SET_STATUS_AT_BOOT,
         CONF_STOP_MODE_UART,
@@ -25,7 +25,8 @@ def validate_icons(config):
         icon = ICON_CONFIG
     elif sensor_id == CONF_ENROLLING:
         icon = ICON_KEY_PLUS
-
+    else:
+        icon = "mdi:checkbox-blank-outline"
     return icon
 
 
