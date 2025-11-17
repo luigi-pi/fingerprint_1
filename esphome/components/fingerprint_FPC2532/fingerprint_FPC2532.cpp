@@ -269,13 +269,13 @@ void FingerprintFPC2532Component::update() {
 void FingerprintFPC2532Component::setup() {
   this->hal_reset_device();
   this->fpc_hal_init();
-  fpc_cmd_abort();
-  app_state_t app_state = APP_STATE_WAIT_READY;
-  device_ready_ = false;
-  version_read_ = false;
-  list_templates_done_ = false;
-  uint16_t device_state_ = 0;
-  uint8_t n_templates_on_device_ = 0;
+  this->fpc_cmd_abort();
+  this->app_state = APP_STATE_WAIT_READY;
+  this->device_ready_ = false;
+  this->version_read_ = false;
+  this->list_templates_done_ = false;
+  this->device_state_ = 0;
+  this->n_templates_on_device_ = 0;
   // If the user didn't specify an idle period to sleep, applies the default.
   if (this->enroll_timeout_ms_ == UINT32_MAX) {
     this->enroll_timeout_ms_ = DEFAULT_ENROLL_TIMEOUT_MS;
@@ -283,33 +283,34 @@ void FingerprintFPC2532Component::setup() {
   if (this->enrolling_binary_sensor_ != nullptr) {
     this->enrolling_binary_sensor_->publish_state(false);
   }
-  fpc_cmd_status_request();
+  this->fpc_cmd_status_request();
   // CONFIG CALLBACKS
+  /*
+    this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
+      // this->app_state = APP_STATE_WAIT_CONFIG;
+      // this->config_received = fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // read current
+      ESP_LOGI(TAG, "switch");
 
-  this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
-    // this->app_state = APP_STATE_WAIT_CONFIG;
-    // this->config_received = fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // read current
-    ESP_LOGI(TAG, "switch");
-    /*
-    ESP_LOGI(TAG,
-             "System Config:\n"
-             "  version                     = %u\n"
-             "  finger_scan_interval_ms     = %u\n"
-             "  sys_flags                   = 0x%08X\n"
-             "  uart_delay_before_irq_ms    = %u\n"
-             "  uart_baudrate               = %u\n"
-             "  idfy_max_consecutive_fails  = %u\n"
-             "  idfy_lockout_time_s         = %u\n"
-             "  idle_time_before_sleep_ms   = %u",
-             current_config_.version, current_config_.finger_scan_interval_ms, current_config_.sys_flags,
-             current_config_.uart_delay_before_irq_ms, current_config_.uart_baudrate,
-             current_config_.idfy_max_consecutive_fails, current_config_.idfy_lockout_time_s,
-             current_config_.idle_time_before_sleep_ms);
-             */
-    this->status_at_boot = true;
-    this->switch_state = state;
-    //   fpc_cmd_system_config_set_request(&this->current_config_);  // debug
-  });
+      ESP_LOGI(TAG,
+               "System Config:\n"
+               "  version                     = %u\n"
+               "  finger_scan_interval_ms     = %u\n"
+               "  sys_flags                   = 0x%08X\n"
+               "  uart_delay_before_irq_ms    = %u\n"
+               "  uart_baudrate               = %u\n"
+               "  idfy_max_consecutive_fails  = %u\n"
+               "  idfy_lockout_time_s         = %u\n"
+               "  idle_time_before_sleep_ms   = %u",
+               current_config_.version, current_config_.finger_scan_interval_ms, current_config_.sys_flags,
+               current_config_.uart_delay_before_irq_ms, current_config_.uart_baudrate,
+               current_config_.idfy_max_consecutive_fails, current_config_.idfy_lockout_time_s,
+               current_config_.idle_time_before_sleep_ms);
+
+      this->status_at_boot = true;
+      this->switch_state = state;
+      //   fpc_cmd_system_config_set_request(&this->current_config_);  // debug
+    });
+    */
 }
 
 /*
