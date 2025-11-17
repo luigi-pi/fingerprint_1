@@ -32,7 +32,7 @@ async def to_code(config):
     cg.add(hub.set_status_at_boot_switch(sw))
 
     # SWITCH2: Stop Mode UART
-    sw2 = switch.new_switch(
+    sw2 = await switch.new_switch(
         {
             "name": "Stop Mode UART",
             "id": CONF_STOP_MODE_UART,
@@ -43,7 +43,7 @@ async def to_code(config):
     cg.add(hub.set_stop_mode_uart_switch(sw2))
 
     # SWITCH3: uart_irq_before_tx
-    sw3 = switch.new_switch(
+    sw3 = await switch.new_switch(
         {
             "name": "uart irq before tx",
             "id": CONF_UART_IRQ_BEFORE_TX,
