@@ -251,21 +251,7 @@ void FingerprintFPC2532Component::on_list_templates(int num_templates, uint16_t 
 }
 
 void FingerprintFPC2532Component::update() {
-  /*digitalWrite(2, LED_state_ ? HIGH : LOW);
-  if (millis() - start_ > 1000) {
-    fpc_cmd_status_request();
-    start_ = millis();
-    LED_state_ = !LED_state_;
-  }*/
-  // if (!device_ready_){  fpc_cmd_status_request();}
-  /*ESP_LOGD(TAG,
-           "app_state= %s (%d), device state= %s (%d), device_ready_?= %d, version read?= %d, list_templates_done_?= %d,
-     " "callback onstatus exists?= %d, " "n_templates_on_device_ = %d", app_state_wait_str_(app_state), app_state,
-     get_state_str_(device_state_).c_str(), device_state_, device_ready_, version_read_, list_templates_done_,
-     cmd_callbacks.on_status != nullptr, n_templates_on_device_);
-  */
   fpc::fpc_result_t result;
-  // fpc_cmd_status_request();
   size_t n = this->available();
   if (n) {
     ESP_LOGVV(TAG, "number of bytes available to read: %d", n);
@@ -284,9 +270,6 @@ void FingerprintFPC2532Component::setup() {
   this->hal_reset_device();
   this->fpc_hal_init();
   fpc_cmd_abort();
-  // fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
-  //  fpc_cmd_delete_template_request(&id_type);
-  //    start_ = millis();
   app_state_t app_state = APP_STATE_WAIT_READY;
   device_ready_ = false;
   version_read_ = false;
@@ -304,10 +287,10 @@ void FingerprintFPC2532Component::setup() {
   // CONFIG CALLBACKS
 
   this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
-    this->config_received = fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // read current
     // this->app_state = APP_STATE_WAIT_CONFIG;
-    while (delay_elapsed(3000)) {
-    };
+    // this->config_received = fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // read current
+    ESP_LOGI(TAG, "switch");
+    /*
     ESP_LOGI(TAG,
              "System Config:\n"
              "  version                     = %u\n"
@@ -322,9 +305,9 @@ void FingerprintFPC2532Component::setup() {
              current_config_.uart_delay_before_irq_ms, current_config_.uart_baudrate,
              current_config_.idfy_max_consecutive_fails, current_config_.idfy_lockout_time_s,
              current_config_.idle_time_before_sleep_ms);
+             */
     this->status_at_boot = true;
     this->switch_state = state;
-    // if (delay_elapsed(3000))                                      // debug
     //   fpc_cmd_system_config_set_request(&this->current_config_);  // debug
   });
 }
