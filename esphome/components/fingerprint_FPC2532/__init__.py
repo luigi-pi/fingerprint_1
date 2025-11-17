@@ -23,7 +23,7 @@ from esphome.const import (
     CONF_TRIGGER_ID,
 )
 
-CODEOWNERS = ["@OnFreund", "@loongyh", "@alexborro"]
+CODEOWNERS = ["@luigi-pi"]
 DEPENDENCIES = ["uart"]
 AUTO_LOAD = ["binary_sensor", "sensor", "text_sensor", "switch_"]
 MULTI_CONF = True
