@@ -345,6 +345,12 @@ void FingerprintFPC2532Component::process_state(void) {
           } else {
             ESP_LOGE(TAG, "status_at_boot_switch_ is something");
           }
+          if (this->enrolling_binary_sensor_ == nullptr) {
+            ESP_LOGE(TAG, "enrolling_binary_sensor_ is NULL!");
+          } else {
+            ESP_LOGE(TAG, "enrolling_binary_sensor_ is something");
+          }
+
           // this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
         }
       }
