@@ -302,16 +302,31 @@ void FingerprintFPC2532Component::setup() {
   }
   fpc_cmd_status_request();
   // CONFIG CALLBACKS
-  /*
+
   this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
     this->config_received = fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // read current
     // this->app_state = APP_STATE_WAIT_CONFIG;
+    while (delay_elapsed(3000)) {
+    };
+    ESP_LOGI(TAG,
+             "System Config:\n"
+             "  version                     = %u\n"
+             "  finger_scan_interval_ms     = %u\n"
+             "  sys_flags                   = 0x%08X\n"
+             "  uart_delay_before_irq_ms    = %u\n"
+             "  uart_baudrate               = %u\n"
+             "  idfy_max_consecutive_fails  = %u\n"
+             "  idfy_lockout_time_s         = %u\n"
+             "  idle_time_before_sleep_ms   = %u",
+             current_config_.version, current_config_.finger_scan_interval_ms, current_config_.sys_flags,
+             current_config_.uart_delay_before_irq_ms, current_config_.uart_baudrate,
+             current_config_.idfy_max_consecutive_fails, current_config_.idfy_lockout_time_s,
+             current_config_.idle_time_before_sleep_ms);
     this->status_at_boot = true;
     this->switch_state = state;
-    if (delay_elapsed(3000))                                      // debug
-      fpc_cmd_system_config_set_request(&this->current_config_);  // debug
+    // if (delay_elapsed(3000))                                      // debug
+    //   fpc_cmd_system_config_set_request(&this->current_config_);  // debug
   });
-  */
 }
 
 /*
@@ -342,7 +357,7 @@ void FingerprintFPC2532Component::process_state(void) {
         if (this->delay_elapsed(3000)) {  // Wait for the device to be fully ready.
           next_state = APP_STATE_WAIT_VERSION;
           this->fpc_cmd_version_request();
-          this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
+          // this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
         }
       }
       break;
