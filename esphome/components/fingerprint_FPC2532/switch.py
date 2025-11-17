@@ -30,6 +30,7 @@ async def to_code(config):
     cg.add(sw.set_entity_category(ENTITY_CATEGORY_CONFIG))
     cg.add(sw.set_icon(ICON_CONFIG))
     cg.add(hub.set_status_at_boot_switch(sw))
+    cg.add_define("DEBUG_SWITCH_SET")  # Just a marker to check compilation
 
     # SWITCH2: Stop Mode UART
     sw2 = await switch.new_switch(
