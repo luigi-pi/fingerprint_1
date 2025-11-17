@@ -21,12 +21,11 @@ async def to_code(config):
     hub = await cg.get_variable(config[CONF_FINGERPRINT_FPC2532_ID])
 
     # SWITCH: Set Status at Boot
-    sw = await switch.new_switch(
-        {
-            "name": "Set Status At Boot",
-            "id": CONF_SET_STATUS_AT_BOOT,
-        }
-    )
+    conf = {
+        cv.GenerateID(): cv.declare_id(switch.Switch),  # ESPHome expects this
+        "name": "Set Status At Boot",
+    }
+    sw = await switch.new_switch(conf)
     cg.add(sw.set_entity_category(ENTITY_CATEGORY_CONFIG))
     cg.add(sw.set_icon(ICON_CONFIG))
     cg.add(hub.set_status_at_boot_switch(sw))
