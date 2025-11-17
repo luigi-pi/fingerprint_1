@@ -302,6 +302,7 @@ void FingerprintFPC2532Component::setup() {
   }
   fpc_cmd_status_request();
   // CONFIG CALLBACKS
+  /*
   this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
     this->config_received = fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // read current
     // this->app_state = APP_STATE_WAIT_CONFIG;
@@ -310,6 +311,7 @@ void FingerprintFPC2532Component::setup() {
     if (delay_elapsed(3000))                                      // debug
       fpc_cmd_system_config_set_request(&this->current_config_);  // debug
   });
+  */
 }
 
 /*
