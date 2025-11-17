@@ -285,11 +285,6 @@ void FingerprintFPC2532Component::setup() {
   }
   this->fpc_cmd_status_request();
   // CONFIG CALLBACKS
-  if (this->status_at_boot_switch_ == nullptr) {
-    ESP_LOGE(TAG, "status_at_boot_switch_ is NULL!");
-  } else {
-    ESP_LOGE(TAG, "status_at_boot_switch_ is something");
-  }
   /*
 this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
   // this->app_state = APP_STATE_WAIT_CONFIG;
@@ -345,6 +340,11 @@ void FingerprintFPC2532Component::process_state(void) {
         if (this->delay_elapsed(3000)) {  // Wait for the device to be fully ready.
           next_state = APP_STATE_WAIT_VERSION;
           this->fpc_cmd_version_request();
+          if (this->status_at_boot_switch_ == nullptr) {
+            ESP_LOGE(TAG, "status_at_boot_switch_ is NULL!");
+          } else {
+            ESP_LOGE(TAG, "status_at_boot_switch_ is something");
+          }
           // this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
         }
       }
