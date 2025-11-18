@@ -1,8 +1,9 @@
 import esphome.codegen as cg
 from esphome.components import switch
+import esphome.config_validation as cv
 from esphome.const import ENTITY_CATEGORY_CONFIG
 
-from . import CONF_FINGERPRINT_FPC2532_ID
+from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
 ICON_CONFIG = "mdi:cog"
 
@@ -10,6 +11,13 @@ ICON_CONFIG = "mdi:cog"
 CONF_SET_STATUS_AT_BOOT = "status_at_boot"
 CONF_STOP_MODE_UART = "stop_mode_uart"
 CONF_UART_IRQ_BEFORE_TX = "uart_irq_before_tx"
+
+
+DEPENDENCIES = ["fingerprint_FPC2532"]
+
+CONFIG_SCHEMA = cv.Schema(
+    {cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(FingerprintFPC2532Component)}
+)
 
 
 async def to_code(config):
