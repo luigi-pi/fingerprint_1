@@ -1,5 +1,5 @@
 import esphome.codegen as cg
-from esphome.components import sensor
+from esphome.components import sensor, switch
 import esphome.config_validation as cv
 from esphome.const import (
     CONF_CAPACITY,
@@ -20,9 +20,13 @@ from esphome.const import (
 
 from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
+ICON_COG = "mdi:cog"
+CONF_SET_STATUS_AT_BOOT = "status_at_boot"
+CONF_STOP_MODE_UART = "stop_mode_uart"
+CONF_UART_IRQ_BEFORE_TX = "uart_irq_before_tx"
+
 CONF_ENROLLMENT_FEEDBACK = "enrollment_feedback"
 ICON_FEEDBACK = "mdi:message-alert-outline"
-
 ICON_CONFIG = "mdi:settings"
 CONF_LOCKOUT_TIME = "lockout_time_s"
 CONF_LOCKOUT_AFTER_NR_OF_FAILS = "lockout_after_nr_of_fails"
@@ -109,6 +113,21 @@ CONFIG_SCHEMA = cv.Schema(
             accuracy_decimals=0,
             entity_category=ENTITY_CATEGORY_CONFIG,
         ),
+        cv.Optional(CONF_SET_STATUS_AT_BOOT): switch.switch_schema(
+            icon=ICON_COG,
+            entity_category=ENTITY_CATEGORY_CONFIG,
+            default_restore_mode="DISABLED",
+        ),
+        cv.Optional(CONF_STOP_MODE_UART): switch.switch_schema(
+            icon=ICON_COG,
+            entity_category=ENTITY_CATEGORY_CONFIG,
+            default_restore_mode="DISABLED",
+        ),
+        cv.Optional(CONF_UART_IRQ_BEFORE_TX): switch.switch_schema(
+            icon=ICON_COG,
+            entity_category=ENTITY_CATEGORY_CONFIG,
+            default_restore_mode="DISABLED",
+        ),
     }
 )
 
@@ -137,3 +156,12 @@ async def to_code(config):
         conf = config[key]
         sens = await sensor.new_sensor(conf)
         cg.add(getattr(hub, f"set_{key}_sensor")(sens))
+
+    for switch_id, setter_name in [
+        (CONF_SET_STATUS_AT_BOOT, "set_status_at_boot_switch"),
+        (CONF_STOP_MODE_UART, "set_stop_mode_uart_switch"),
+        (CONF_UART_IRQ_BEFORE_TX, "set_uart_irq_before_tx_switch"),
+    ]:
+        if conf := config.get(switch_id):
+            sw_var = await switch.new_switch(conf)
+            cg.add(getattr(hub, setter_name)(sw_var))
