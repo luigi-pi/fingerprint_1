@@ -333,7 +333,7 @@ void FingerprintFPC2532Component::process_state(void) {
       if (this->version_read_) {
         this->version_read_ = false;
         next_state = APP_STATE_WAIT_CONFIG;
-        this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);
+        this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_CUSTOM);
       }
       break;
     case APP_STATE_WAIT_CONFIG:
@@ -352,13 +352,14 @@ void FingerprintFPC2532Component::process_state(void) {
       */
 
       if (this->config_received) {
+        /*
         if (status_at_boot) {
           if (this->current_config_.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT)
             this->status_at_boot_switch_->turn_on();
           else
             this->status_at_boot_switch_->turn_off();
           status_at_boot = false;
-        }
+        }*/
         next_state = APP_STATE_WAIT_LIST_TEMPLATES;
         this->fpc_cmd_list_templates_request();
         config_received = false;
@@ -1141,17 +1142,26 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_get_system_config(fpc::
 
     if (this->baud_rate_sensor_ != nullptr)
       this->baud_rate_sensor_->publish_state(cmd_cfg->cfg.uart_baudrate);
-    /*
-        if (this->status_at_boot_sensor_ != nullptr)
-          this->status_at_boot_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT) != 0);
 
-        if (this->stop_mode_uart_sensor_ != nullptr)
-          this->stop_mode_uart_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IN_STOP_MODE) != 0);
+    if (this->status_at_boot_switch_ != nullptr) {
+      if ((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT) != 0)
+        this->status_at_boot_switch_->turn_on();
+      else
+        this->status_at_boot_switch_->turn_off();
+    }
+    if (this->stop_mode_uart_switch_ != nullptr) {
+      if ((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IN_STOP_MODE) != 0)
+        this->stop_mode_uart_switch_->turn_on();
+      else
+        this->stop_mode_uart_switch_->turn_off();
+    }
+    if ((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IRQ_BEFORE_TX) != 0) {
+      if (this->current_config_.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT)
+        this->uart_irq_before_tx_switch_->turn_on();
+      else
+        this->uart_irq_before_tx_switch_->turn_off();
+    }
 
-        if (this->uart_irq_before_tx_sensor_ != nullptr)
-          this->uart_irq_before_tx_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IRQ_BEFORE_TX) !=
-       0);
-     */
     this->config_received = true;
     this->current_config_ = cmd_cfg->cfg;
   }
