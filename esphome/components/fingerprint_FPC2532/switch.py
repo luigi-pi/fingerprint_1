@@ -14,7 +14,7 @@ ICON_CONFIG = "mdi:cog"
 DEPENDENCIES = ["fingerprint_FPC2532"]
 
 
-CONFIG_SCHEMA = switch.switch_schema().extend(
+CONFIG_SCHEMA = switch.switch_schema(FingerprintFPC2532Component).extend(
     {cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(FingerprintFPC2532Component)}
 )
 
