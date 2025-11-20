@@ -291,6 +291,16 @@ void FingerprintFPC2532Component::setup() {
     this->switch_state = state;
     ESP_LOGI(TAG, "switch state (boot) = %s", switch_state ? "true" : "false");
   });
+  this->uart_irq_before_tx_switch_->add_on_state_callback([this](bool state) {
+    this->uart_irq_before_tx = true;
+    this->switch_state = state;
+    ESP_LOGI(TAG, "uart_irq_before_tx (boot) = %s", switch_state ? "true" : "false");
+  });
+  this->stop_mode_uart_switch_->add_on_state_callback([this](bool state) {
+    this->stop_mode_uart = true;
+    this->switch_state = state;
+    ESP_LOGI(TAG, "stop_mode_uart (boot) = %s", switch_state ? "true" : "false");
+  });
   this->app_state = APP_STATE_WAIT_READY;
   this->fpc_cmd_status_request();
 }
