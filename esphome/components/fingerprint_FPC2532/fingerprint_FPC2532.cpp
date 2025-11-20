@@ -283,12 +283,7 @@ void FingerprintFPC2532Component::setup() {
   if (this->enrolling_binary_sensor_ != nullptr) {
     this->enrolling_binary_sensor_->publish_state(false);
   }
-  this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
-    ESP_LOGI(TAG, "switch");
-    this->status_at_boot = true;
-    this->switch_state = state;
-    ESP_LOGI(TAG, "switch state = %n", switch_state);
-  });
+
   this->fpc_cmd_status_request();
 }
 
@@ -319,7 +314,15 @@ void FingerprintFPC2532Component::process_state(void) {
       ESP_LOGD(TAG, "APP_STATE_WAIT_READY");
       if (this->device_ready_) {
         if (this->delay_elapsed(3000)) {  // Wait for the device to be fully ready.
+          /*
           next_state = APP_STATE_WAIT_VERSION;
+          this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
+          ESP_LOGI(TAG, "switch");
+          this->status_at_boot = true;
+          this->switch_state = state;
+          ESP_LOGI(TAG, "switch state = %n", switch_state);
+          });
+          */
           this->fpc_cmd_version_request();
           // this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
         }
