@@ -7,20 +7,27 @@ from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
 CONF_ENROLLING_SWITCH = "enrolling_switch"
 ICON_CONFIG = "mdi:cog"
-# CONF_SET_STATUS_AT_BOOT = "status_at_boot"
-# CONF_STOP_MODE_UART = "stop_mode_uart"
-# CONF_UART_IRQ_BEFORE_TX = "uart_irq_before_tx"
 
 DEPENDENCIES = ["fingerprint_FPC2532"]
 
-
-CONFIG_SCHEMA = switch.switch_schema(FingerprintFPC2532Component).extend(
-    {cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(FingerprintFPC2532Component)}
+# ------------------------------------------
+# Schema: only ensure hub ID is provided
+# ------------------------------------------
+CONFIG_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(
+            FingerprintFPC2532Component
+        ),
+        cv.Required(CONF_ID): cv.declare_id(),
+    }
 )
 
 
+# ------------------------------------------
+# to_code: create the switch and attach it to the hub
+# ------------------------------------------
 async def to_code(config):
     hub = await cg.get_variable(config[CONF_FINGERPRINT_FPC2532_ID])
-    sw = await switch.new_switch(config)
-    # Dynamically call: hub.set_<id>_switch(sw)
+    sw = await switch.new_switch(config)  # create the switch object
+    # Attach switch to hub via setter
     cg.add(getattr(hub, f"set_{config[CONF_ID]}_switch")(sw))
