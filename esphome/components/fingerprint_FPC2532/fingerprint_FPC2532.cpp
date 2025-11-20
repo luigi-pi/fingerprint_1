@@ -338,7 +338,7 @@ void FingerprintFPC2532Component::process_state(void) {
       break;
     case APP_STATE_WAIT_CONFIG:
       ESP_LOGD(TAG, "APP_STATE_WAIT_CONFIG");
-      if (this->config_received == FPC_RESULT_OK) {
+      if (this->config_received) {
         if (status_at_boot) {
           if (this->current_config_.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT)
             this->status_at_boot_switch_->turn_on();
@@ -444,7 +444,7 @@ void FingerprintFPC2532Component::process_state(void) {
       break;
     }
     case APP_STATE_SET_CONFIG:
-      if (this->config_received == FPC_RESULT_OK) {
+      if (this->config_received) {
         if (this->delay_elapsed(1000)) {  // Wait for the device to be fully ready.
           if (this->status_at_boot) {
             if (this->switch_state)
@@ -457,6 +457,7 @@ void FingerprintFPC2532Component::process_state(void) {
           fpc_cmd_system_config_set_request(&this->current_config_);
           this->status_at_boot = false;
           next_state = APP_STATE_WAIT_IDENTIFY;
+          config_received = false;
         }
       }
       break;
@@ -1136,6 +1137,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_get_system_config(fpc::
           this->uart_irq_before_tx_sensor_->publish_state((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IRQ_BEFORE_TX) !=
        0);
      */
+    this->config_received = true;
     this->current_config_ = cmd_cfg->cfg;
   }
 

@@ -166,7 +166,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
 
  protected:
   fpc::fpc_system_config_t current_config_;
-  fpc::fpc_result_t config_received;
+  bool config_received;
   bool status_at_boot = false;
   bool switch_state = false;
   uint32_t start_{0};         // per debug
