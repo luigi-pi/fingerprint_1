@@ -314,7 +314,7 @@ void FingerprintFPC2532Component::process_state(void) {
       if (this->device_ready_) {
         if (this->delay_elapsed(3000)) {  // Wait for the device to be fully ready.
           next_state = APP_STATE_WAIT_VERSION;
-          // this->fpc_cmd_version_request();
+          this->fpc_cmd_version_request();
           /*
           this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
             ESP_LOGI(TAG, "switch");
@@ -328,6 +328,7 @@ void FingerprintFPC2532Component::process_state(void) {
       }
       break;
     case APP_STATE_WAIT_VERSION:
+      ESP_LOGI(TAG, "APP_STATE_WAIT_VERSION");
       if (this->version_read_) {
         this->version_read_ = false;
         next_state = APP_STATE_WAIT_LIST_TEMPLATES;
@@ -335,6 +336,7 @@ void FingerprintFPC2532Component::process_state(void) {
       }
       break;
     case APP_STATE_WAIT_LIST_TEMPLATES:
+      ESP_LOGI(TAG, "APP_STATE_WAIT_LIST_TEMPLATES");
       if (this->list_templates_done_) {
         this->list_templates_done_ = false;
         if (this->n_templates_on_device_ == MAX_NUMBER_OF_TEMPLATES) {
@@ -358,6 +360,7 @@ void FingerprintFPC2532Component::process_state(void) {
       break;
 
     case APP_STATE_WAIT_ENROLL: {
+      ESP_LOGI(TAG, "APP_STATE_WAIT_ENROLL");
       if (millis() - this->enroll_idle_time_ > this->enroll_timeout_ms_) {
         ESP_LOGW(TAG, "Enroll timeout. Aborting operation.");
         this->enrollment_failed_callback_.call(0);
