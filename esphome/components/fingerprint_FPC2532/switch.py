@@ -18,7 +18,6 @@ CONFIG_SCHEMA = cv.Schema(
         cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(
             FingerprintFPC2532Component
         ),
-        cv.Required(CONF_ID): cv.declare_id(),
     }
 )
 
