@@ -276,6 +276,7 @@ void FingerprintFPC2532Component::setup() {
   this->list_templates_done_ = false;
   this->device_state_ = 0;
   this->n_templates_on_device_ = 0;
+  this->delay_until_ = 0;
   // If the user didn't specify an idle period to sleep, applies the default.
   if (this->enroll_timeout_ms_ == UINT32_MAX) {
     this->enroll_timeout_ms_ = DEFAULT_ENROLL_TIMEOUT_MS;
@@ -323,7 +324,7 @@ void FingerprintFPC2532Component::process_state(void) {
           ESP_LOGI(TAG, "switch state = %n", switch_state);
           });
           */
-          // this->fpc_cmd_version_request();
+          this->fpc_cmd_version_request();
           //  this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
         }
       }
