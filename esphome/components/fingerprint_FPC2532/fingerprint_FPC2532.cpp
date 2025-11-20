@@ -206,6 +206,8 @@ static const char *app_state_wait_str_(uint16_t app_state) {
       return "wait to Delete Templates";
     case APP_STATE_WAIT_CONFIG:
       return "wait to receive config";
+    case APP_STATE_SET_CONFIG:
+      return "wait to SET config";
   }
   return "app state Unknown";
 }
@@ -285,10 +287,9 @@ void FingerprintFPC2532Component::setup() {
     this->enrolling_binary_sensor_->publish_state(false);
   }
   this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
-    ESP_LOGI(TAG, "switch");
     this->status_at_boot = true;
     this->switch_state = state;
-    ESP_LOGI(TAG, "switch state = %s", switch_state ? "true" : "false");
+    ESP_LOGI(TAG, "switch state (boot) = %s", switch_state ? "true" : "false");
   });
   this->app_state = APP_STATE_WAIT_READY;
   this->fpc_cmd_status_request();
@@ -331,8 +332,21 @@ void FingerprintFPC2532Component::process_state(void) {
       ESP_LOGD(TAG, "APP_STATE_WAIT_VERSION");
       if (this->version_read_) {
         this->version_read_ = false;
-        next_state = APP_STATE_WAIT_LIST_TEMPLATES;
-        this->fpc_cmd_list_templates_request();
+        next_state = APP_STATE_WAIT_CONFIG;
+        this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);
+      }
+      break;
+    case APP_STATE_WAIT_CONFIG:
+      ESP_LOGD(TAG, "APP_STATE_WAIT_CONFIG");
+      if (this->config_received == FPC_RESULT_OK) {
+        if (status_at_boot) {
+          if (this->current_config_.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT)
+            this->status_at_boot_switch_->turn_on();
+          else
+            this->status_at_boot_switch_->turn_off();
+          next_state = APP_STATE_WAIT_LIST_TEMPLATES;
+          this->fpc_cmd_list_templates_request();
+        }
       }
       break;
     case APP_STATE_WAIT_LIST_TEMPLATES:
@@ -429,7 +443,7 @@ void FingerprintFPC2532Component::process_state(void) {
       }
       break;
     }
-    case APP_STATE_WAIT_CONFIG:
+    case APP_STATE_SET_CONFIG:
       if (this->config_received == FPC_RESULT_OK) {
         if (this->delay_elapsed(1000)) {  // Wait for the device to be fully ready.
           if (this->status_at_boot) {
