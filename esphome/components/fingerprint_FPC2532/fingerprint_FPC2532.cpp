@@ -392,6 +392,7 @@ void FingerprintFPC2532Component::process_state(void) {
       }
       break;
     case APP_STATE_WAIT_ABORT:
+      ESP_LOGI(TAG, "Aborting current operation..");
       if (device_ready_ && ((this->device_state_ & (STATE_ENROLL | STATE_IDENTIFY)) == 0)) {
         ESP_LOGI(TAG, "Operation aborted");
         enroll_status_received_ = false;

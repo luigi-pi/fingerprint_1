@@ -323,7 +323,6 @@ template<typename... Ts> class EnrollmentAction : public Action<Ts...>, public P
       this->parent_->id_type_enroll_request.id = 0;
     }
     this->parent_->fpc_cmd_abort();
-    ESP_LOGI(TAG, "Aborting current operation..");
     this->parent_->app_state = APP_STATE_WAIT_ABORT;
   }
 };
@@ -338,7 +337,6 @@ template<typename... Ts> class DeleteAction : public Action<Ts...>, public Paren
     this->parent_->id_type_delete_request.type = ID_TYPE_SPECIFIED;
     this->parent_->id_type_delete_request.id = finger_id;
     this->parent_->fpc_cmd_abort();
-    ESP_LOGI(TAG, "Aborting current operation..");
     this->parent_->app_state = APP_STATE_WAIT_ABORT;
   }
 };
@@ -350,7 +348,6 @@ template<typename... Ts> class DeleteAllAction : public Action<Ts...>, public Pa
     this->parent_->id_type_delete_request.type = ID_TYPE_ALL;
     this->parent_->id_type_delete_request.id = 0;
     this->parent_->fpc_cmd_abort();
-    ESP_LOGI(TAG, "Aborting current operation..");
     this->parent_->app_state = APP_STATE_WAIT_ABORT;
   }
 };
@@ -361,7 +358,6 @@ class CancelEnrollmentAction : public Action<Ts...>, public Parented<Fingerprint
   void play(Ts... x) override {
     this->parent_->fpc_cmd_abort();
     this->parent_->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_CUSTOM);  // DBUG only, delete this line
-    ESP_LOGI(TAG, "Aborting current operation..");
     this->parent_->app_state = APP_STATE_WAIT_ABORT;
   }
 };
