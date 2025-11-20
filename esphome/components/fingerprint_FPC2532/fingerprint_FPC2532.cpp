@@ -311,7 +311,7 @@ void FingerprintFPC2532Component::process_state(void) {
   switch (app_state) {
     case APP_STATE_WAIT_READY:
       if (this->device_ready_) {
-        if (this->delay_elapsed(10000)) {  // Wait for the device to be fully ready.
+        if (this->delay_elapsed(3000)) {  // Wait for the device to be fully ready.
           next_state = APP_STATE_WAIT_VERSION;
           // this->fpc_cmd_version_request();
           /*
@@ -321,17 +321,6 @@ void FingerprintFPC2532Component::process_state(void) {
             this->switch_state = state;
           });
           */
-
-          if (this->status_at_boot_switch_ == nullptr) {
-            ESP_LOGE(TAG, "status_at_boot_switch_ is NULL!");
-          } else {
-            ESP_LOGE(TAG, "status_at_boot_switch_ is something");
-          }
-          if (this->enrolling_binary_sensor_ == nullptr) {
-            ESP_LOGE(TAG, "enrolling_binary_sensor_ is NULL!");
-          } else {
-            ESP_LOGE(TAG, "enrolling_binary_sensor_ is something");
-          }
 
           // this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
         }
