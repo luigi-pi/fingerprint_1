@@ -269,7 +269,7 @@ void FingerprintFPC2532Component::update() {
 void FingerprintFPC2532Component::setup() {
   this->hal_reset_device();
   this->fpc_hal_init();
-  this->fpc_cmd_abort();
+  // this->fpc_cmd_abort();
   this->app_state = APP_STATE_WAIT_READY;
   this->device_ready_ = false;
   this->version_read_ = false;
