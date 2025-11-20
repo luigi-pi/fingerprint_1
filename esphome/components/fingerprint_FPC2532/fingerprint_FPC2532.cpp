@@ -320,7 +320,7 @@ void FingerprintFPC2532Component::process_state(void) {
             ESP_LOGI(TAG, "switch");
             this->status_at_boot = true;
             this->switch_state = state;
-            ESP_LOGI(TAG, "switch state = %n", switch_state);
+            ESP_LOGI(TAG, "switch state = %s", switch_state ? "true" : "false");
           });
 
           next_state = APP_STATE_WAIT_VERSION;
