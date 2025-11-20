@@ -7,7 +7,7 @@ from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
 DEPENDENCIES = ["fingerprint_FPC2532"]
 
-CONFIG_SCHEMA = switch.switch_schema(FingerprintFPC2532Component).extend(
+CONFIG_SCHEMA = switch.switch_schema().extend(
     {
         cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(
             FingerprintFPC2532Component
