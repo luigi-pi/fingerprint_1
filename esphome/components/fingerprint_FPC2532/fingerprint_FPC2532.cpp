@@ -287,6 +287,7 @@ void FingerprintFPC2532Component::setup() {
     ESP_LOGI(TAG, "switch");
     this->status_at_boot = true;
     this->switch_state = state;
+    ESP_LOGI(TAG, "switch state = %n", switch_state);
   });
   this->fpc_cmd_status_request();
 }
