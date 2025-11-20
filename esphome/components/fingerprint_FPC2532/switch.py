@@ -5,11 +5,14 @@ from esphome.const import CONF_ID
 
 from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
-CONF_ENROLLING_SWITCH = "enrolling_switch"
 DEPENDENCIES = ["fingerprint_FPC2532"]
 
 CONFIG_SCHEMA = switch.switch_schema(FingerprintFPC2532Component).extend(
-    {cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(FingerprintFPC2532Component)}
+    {
+        cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(
+            FingerprintFPC2532Component
+        ),
+    }
 )
 
 
