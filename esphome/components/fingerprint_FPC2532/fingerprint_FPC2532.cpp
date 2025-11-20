@@ -323,8 +323,8 @@ void FingerprintFPC2532Component::process_state(void) {
           ESP_LOGI(TAG, "switch state = %n", switch_state);
           });
           */
-          this->fpc_cmd_version_request();
-          // this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
+          // this->fpc_cmd_version_request();
+          //  this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
         }
       }
       break;
