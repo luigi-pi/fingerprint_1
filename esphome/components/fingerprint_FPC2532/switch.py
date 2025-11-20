@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 from esphome.components import switch
 import esphome.config_validation as cv
-from esphome.const import CONF_ICON, CONF_ID, ENTITY_CATEGORY_CONFIG
+from esphome.const import CONF_ICON, CONF_ID
 
 from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
@@ -49,5 +49,5 @@ async def to_code(config):
     if CONF_ICON not in config:
         icon = validate_icons(config)
         cg.add(sw.set_icon(icon))
-    cg.add(sw.set_entity_category(ENTITY_CATEGORY_CONFIG))
+    # cg.add(sw.set_entity_category(ENTITY_CATEGORY_CONFIG))
     cg.add(getattr(hub, f"set_{config[CONF_ID]}_switch")(sw))
