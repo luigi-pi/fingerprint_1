@@ -338,28 +338,31 @@ void FingerprintFPC2532Component::process_state(void) {
       break;
     case APP_STATE_WAIT_CONFIG:
       ESP_LOGD(TAG, "APP_STATE_WAIT_CONFIG");
-      static bool flag = false;
-
-      if (flag)
-        this->status_at_boot_switch_->turn_on();
-      else
-        this->status_at_boot_switch_->turn_off();
-
-      if (this->delay_elapsed(3000)) {
-        flag = !flag;
-      }
 
       /*
+    static bool flag = false;
+    if (flag)
+      this->status_at_boot_switch_->turn_on();
+    else
+      this->status_at_boot_switch_->turn_off();
+
+    if (this->delay_elapsed(3000)) {
+      flag = !flag;
+    }
+      */
+
       if (this->config_received) {
         if (status_at_boot) {
           if (this->current_config_.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT)
             this->status_at_boot_switch_->turn_on();
           else
             this->status_at_boot_switch_->turn_off();
-          next_state = APP_STATE_WAIT_LIST_TEMPLATES;
-          this->fpc_cmd_list_templates_request();
+          status_at_boot = false;
         }
-      }*/
+        next_state = APP_STATE_WAIT_LIST_TEMPLATES;
+        this->fpc_cmd_list_templates_request();
+        config_received = false;
+      }
       break;
     case APP_STATE_WAIT_LIST_TEMPLATES:
       ESP_LOGI(TAG, "APP_STATE_WAIT_LIST_TEMPLATES");
