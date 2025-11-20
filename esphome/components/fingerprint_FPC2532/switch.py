@@ -5,9 +5,14 @@ from esphome.const import CONF_ID
 
 from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
-DEPENDENCIES = ["fingerprint_FPC2532"]
+# Reference the embedded C++ class
+FingerprintSwitch = (
+    cg.global_ns.namespace("esphome")
+    .namespace("fingerprint_FPC2532")
+    .class_("FingerprintSwitch", switch.Switch)
+)
 
-CONFIG_SCHEMA = switch.switch_schema().extend(
+CONFIG_SCHEMA = switch.switch_schema(FingerprintSwitch).extend(
     {
         cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(
             FingerprintFPC2532Component
@@ -19,4 +24,5 @@ CONFIG_SCHEMA = switch.switch_schema().extend(
 async def to_code(config):
     hub = await cg.get_variable(config[CONF_FINGERPRINT_FPC2532_ID])
     sw = await switch.new_switch(config)
+
     cg.add(getattr(hub, f"set_{config[CONF_ID]}_switch")(sw))

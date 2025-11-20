@@ -32,6 +32,20 @@ typedef enum {
   APP_STATE_WAIT_CONFIG
 } app_state_t;
 
+class FingerprintSwitch : public switch_::Switch {
+ public:
+  void set_callback(std::function<void(bool)> cb) { callback_ = cb; }
+
+ protected:
+  void write_state(bool state) override {
+    if (callback_)
+      callback_(state);
+    publish_state(state);
+  }
+
+  std::function<void(bool)> callback_;
+};
+
 class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDevice {
  public:
   //--- State Machine Functions/declarations ---
@@ -66,13 +80,13 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void set_enrolling_binary_sensor(binary_sensor::BinarySensor *enrolling_binary_sensor) {
     this->enrolling_binary_sensor_ = enrolling_binary_sensor;
   }
-  void set_status_at_boot_switch(switch_::Switch *status_at_boot_switch) {
+  void set_status_at_boot_switch(FingerprintSwitch *status_at_boot_switch) {
     this->status_at_boot_switch_ = status_at_boot_switch;
   }
-  void set_stop_mode_uart_switch(switch_::Switch *stop_mode_uart_switch) {
+  void set_stop_mode_uart_switch(FingerprintSwitch *stop_mode_uart_switch) {
     this->stop_mode_uart_switch_ = stop_mode_uart_switch;
   }
-  void set_uart_irq_before_tx_switch(switch_::Switch *uart_irq_before_tx_switch) {
+  void set_uart_irq_before_tx_switch(FingerprintSwitch *uart_irq_before_tx_switch) {
     this->uart_irq_before_tx_switch_ = uart_irq_before_tx_switch;
   }
   void set_scan_interval_ms_sensor(sensor::Sensor *scan_interval_ms_sensor) {
@@ -177,9 +191,9 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   sensor::Sensor *lockout_time_s_sensor_{nullptr};
   sensor::Sensor *baud_rate_sensor_{nullptr};
 
-  switch_::Switch *status_at_boot_switch_{nullptr};
-  switch_::Switch *stop_mode_uart_switch_{nullptr};
-  switch_::Switch *uart_irq_before_tx_switch_{nullptr};
+  FingerprintSwitch *status_at_boot_switch_{nullptr};
+  FingerprintSwitch *stop_mode_uart_switch_{nullptr};
+  FingerprintSwitch *uart_irq_before_tx_switch_{nullptr};
 
   // sensor::Sensor *capacity_sensor_{nullptr};
   // sensor::Sensor *security_level_sensor_{nullptr};
