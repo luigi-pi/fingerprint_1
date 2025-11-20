@@ -310,6 +310,7 @@ void FingerprintFPC2532Component::process_state(void) {
 
   switch (app_state) {
     case APP_STATE_WAIT_READY:
+      ESP_LOGI(TAG, "APP_STATE_WAIT_READY");
       if (this->device_ready_) {
         if (this->delay_elapsed(3000)) {  // Wait for the device to be fully ready.
           next_state = APP_STATE_WAIT_VERSION;
@@ -840,8 +841,10 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_status(fpc::fpc_cmd_hdr
     }
     if (status->state & STATE_APP_FW_READY) {
       this->device_ready_ = true;
+      ESP_LOGI(TAG, "device ready");
     } else {
       this->device_ready_ = false;
+      ESP_LOGI(TAG, "device notready");
     }
     if ((this->device_state_ & STATE_FINGER_DOWN) &&
         (this->device_state_ & (STATE_IDENTIFY | STATE_ENROLL | STATE_NAVIGATION))) {
