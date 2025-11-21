@@ -332,7 +332,7 @@ void FingerprintFPC2532Component::setup() {
       }
       this->app_state = APP_STATE_SET_CONFIG;
       config_received = false;
-      // this->fpc_cmd_system_config_set_request(&this->current_config_);
+      this->fpc_cmd_system_config_set_request(&this->current_config_);
     }
   });
   this->app_state = APP_STATE_WAIT_READY;
