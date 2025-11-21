@@ -292,6 +292,7 @@ void FingerprintFPC2532Component::setup() {
   if (this->enrolling_binary_sensor_ != nullptr) {
     this->enrolling_binary_sensor_->publish_state(false);
   }
+
   this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
     this->status_at_boot_state_ = state;
     ESP_LOGI(TAG, "switch state (boot) = %s", this->status_at_boot_state_ ? "true" : "false");
@@ -340,6 +341,7 @@ void FingerprintFPC2532Component::setup() {
       }
     }
   });
+
   this->app_state = APP_STATE_WAIT_READY;
   this->fpc_cmd_status_request();
 }
@@ -1206,8 +1208,6 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_get_system_config(fpc::
 
     if (this->lockout_time_s_sensor_ != nullptr)
       this->lockout_time_s_sensor_->publish_state(cmd_cfg->cfg.idfy_lockout_time_s);
-
-    set_lockout_time_s(cmd_cfg->cfg.idfy_lockout_time_s);
 
     if (this->baud_rate_sensor_ != nullptr)
       this->baud_rate_sensor_->publish_state(cmd_cfg->cfg.uart_baudrate);

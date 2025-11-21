@@ -63,7 +63,8 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void set_sensing_pin(GPIOPin *sensing_pin) { this->sensing_pin_ = sensing_pin; }
   void set_sensor_power_pin(GPIOPin *sensor_power_pin) { this->sensor_power_pin_ = sensor_power_pin; }
   void set_enroll_timeout_ms(uint32_t period_ms) { this->enroll_timeout_ms_ = period_ms; }
-  void set_lockout_time_s(uint32_t lockout_time_s) { this->lockout_time_s_ = lockout_time_s; }
+  void set_lockout_time_s(uint8_t lockout_time_s) { this->lockout_time_s_ = lockout_time_s; }
+
   void set_status_sensor(sensor::Sensor *status_sensor) { this->status_sensor_ = status_sensor; }
   void set_text_status_sensor(text_sensor::TextSensor *text_status_sensor) {
     this->text_status_sensor_ = text_status_sensor;
@@ -182,6 +183,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   uint32_t enroll_idle_time_{0};
   uint32_t enroll_timeout_ms_ = UINT32_MAX;
   uint8_t lockout_time_s_ = UINT8_MAX;
+
   bool has_power_pin_ = false;
   void sensor_wakeup_();
   const uint8_t RST_PIN_ =
