@@ -27,6 +27,18 @@ def validate_icons(config):
     return icon
 
 
+def validate_stop_mode_uart_pin(config):
+    """Raise error if stop_mode_uart is defined but no wake_up_pin (CS_N) is declared."""
+    if config[CONF_ID] == CONF_SET_STATUS_AT_BOOT:
+        parent = config[CONF_FINGERPRINT_FPC2532_ID]
+        # Check if the parent has a wake-up pin defined
+        if not getattr(parent, "wake_up_pin", None):
+            raise cv.Invalid(
+                "stop_mode_uart switch requires a system wake_up_pin (CS_N) to be declared in YAML"
+            )
+    return config
+
+
 # Reference the embedded C++ class
 FingerprintSwitch = (
     cg.global_ns.namespace("esphome")
@@ -41,6 +53,7 @@ CONFIG_SCHEMA = switch.switch_schema(FingerprintSwitch).extend(
         ),
     }
 )
+CONFIG_SCHEMA = cv.All(CONFIG_SCHEMA, validate_stop_mode_uart_pin)
 
 
 async def to_code(config):
