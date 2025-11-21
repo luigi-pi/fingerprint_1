@@ -298,7 +298,7 @@ void FingerprintFPC2532Component::setup() {
       }
       this->app_state = APP_STATE_SET_CONFIG;
       config_received = false;
-      // this->fpc_cmd_system_config_set_request(&this->current_config_);
+      this->fpc_cmd_system_config_set_request(&this->current_config_);
     }
   });
   this->uart_irq_before_tx_switch_->add_on_state_callback([this](bool state) {
@@ -341,7 +341,7 @@ void FingerprintFPC2532Component::process_state(void) {
     case APP_STATE_WAIT_READY:
       ESP_LOGD(TAG, "APP_STATE_WAIT_READY");
       if (this->device_ready_) {
-        if (this->delay_elapsed(3000)) {  // Wait for the device to be fully ready.
+        if (this->delay_elapsed(5000)) {  // Wait for the device to be fully ready.
           next_state = APP_STATE_WAIT_VERSION;
           this->fpc_cmd_version_request();
           //  this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_DEFAULT);  // get current defaults
