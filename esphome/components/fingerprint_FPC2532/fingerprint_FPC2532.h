@@ -51,6 +51,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
  public:
   //--- State Machine Functions/declarations ---
   app_state_t app_state;
+  app_state_t prev_state = APP_STATE_WAIT_READY;
   fpc::fpc_id_type_t id_type_enroll_request{0, 0};
   fpc::fpc_id_type_t id_type_delete_request{0, 0};
   bool enroll_request = false;
@@ -167,7 +168,8 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
  protected:
   fpc::fpc_system_config_t current_config_;
   bool config_received;
-  bool status_at_boot = false;
+  bool config_set = false;
+  // bool status_at_boot = false;
   bool stop_mode_uart = false;
   bool uart_irq_before_tx = false;
   bool switch_state = false;

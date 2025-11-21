@@ -287,19 +287,29 @@ void FingerprintFPC2532Component::setup() {
     this->enrolling_binary_sensor_->publish_state(false);
   }
   this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
-    this->status_at_boot = true;
+    // this->status_at_boot = true;
     this->switch_state = state;
     ESP_LOGI(TAG, "switch state (boot) = %s", switch_state ? "true" : "false");
+    if (config_received) {
+      if (this->switch_state)
+        this->current_config_.sys_flags |= CFG_SYS_FLAG_STATUS_EVT_AT_BOOT;
+      else {
+        this->current_config_.sys_flags &= ~CFG_SYS_FLAG_STATUS_EVT_AT_BOOT;
+      }
+      this->app_state = APP_STATE_SET_CONFIG;
+      config_received = false;
+      // this->fpc_cmd_system_config_set_request(&this->current_config_);
+    }
   });
   this->uart_irq_before_tx_switch_->add_on_state_callback([this](bool state) {
     this->uart_irq_before_tx = true;
     this->switch_state = state;
-    ESP_LOGI(TAG, "uart_irq_before_tx (boot) = %s", switch_state ? "true" : "false");
+    ESP_LOGI(TAG, "switch state (irq) = %s", switch_state ? "true" : "false");
   });
   this->stop_mode_uart_switch_->add_on_state_callback([this](bool state) {
     this->stop_mode_uart = true;
     this->switch_state = state;
-    ESP_LOGI(TAG, "stop_mode_uart (boot) = %s", switch_state ? "true" : "false");
+    ESP_LOGI(TAG, "switch state (stop) = %s", switch_state ? "true" : "false");
   });
   this->app_state = APP_STATE_WAIT_READY;
   this->fpc_cmd_status_request();
@@ -349,9 +359,29 @@ void FingerprintFPC2532Component::process_state(void) {
     case APP_STATE_WAIT_CONFIG:
       ESP_LOGD(TAG, "APP_STATE_WAIT_CONFIG");
       if (this->config_received) {
-        next_state = APP_STATE_WAIT_LIST_TEMPLATES;
-        this->fpc_cmd_list_templates_request();
-        config_received = false;
+        ESP_LOGD(TAG, "CONFIG RECEIVED");
+        ESP_LOGI(TAG,
+                 "System Config after GET:\n"s
+                 "  version                     = %u\n"
+                 "  finger_scan_interval_ms     = %u\n"
+                 "  sys_flags                   = 0x%08X\n"
+                 "  uart_delay_before_irq_ms    = %u\n"
+                 "  uart_baudrate               = %u\n"
+                 "  idfy_max_consecutive_fails  = %u\n"
+                 "  idfy_lockout_time_s         = %u\n"
+                 "  idle_time_before_sleep_ms   = %u",
+                 current_config_.version, current_config_.finger_scan_interval_ms, current_config_.sys_flags,
+                 current_config_.uart_delay_before_irq_ms, current_config_.uart_baudrate,
+                 current_config_.idfy_max_consecutive_fails, current_config_.idfy_lockout_time_s,
+                 current_config_.idle_time_before_sleep_ms);
+        if (prev_state == APP_STATE_WAIT_VERSION) {
+          next_state = APP_STATE_WAIT_LIST_TEMPLATES;
+          this->fpc_cmd_list_templates_request();
+        } else if (prev_state == APP_STATE_SET_CONFIG) {
+          next_state = APP_STATE_WAIT_IDENTIFY;
+          fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
+          this->fpc_cmd_identify_request(&id_type, 0);
+        }
       }
       break;
     case APP_STATE_WAIT_LIST_TEMPLATES:
@@ -404,7 +434,7 @@ void FingerprintFPC2532Component::process_state(void) {
     }
 
     case APP_STATE_WAIT_IDENTIFY:
-      if (device_ready_ && ((this->device_state_ & STATE_IDENTIFY) == 0)) {
+      if (this->device_ready_ && ((this->device_state_ & STATE_IDENTIFY) == 0)) {
         fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
         if (this->delay_elapsed(300)) {
           this->fpc_cmd_identify_request(&id_type, 0);
@@ -413,7 +443,7 @@ void FingerprintFPC2532Component::process_state(void) {
       break;
     case APP_STATE_WAIT_ABORT:
       ESP_LOGI(TAG, "Aborting current operation..");
-      if (device_ready_ && ((this->device_state_ & (STATE_ENROLL | STATE_IDENTIFY)) == 0)) {
+      if (this->device_ready_ && ((this->device_state_ & (STATE_ENROLL | STATE_IDENTIFY)) == 0)) {
         ESP_LOGI(TAG, "Operation aborted");
         enroll_status_received_ = false;
         if (this->enroll_request == true) {
@@ -440,7 +470,7 @@ void FingerprintFPC2532Component::process_state(void) {
       }
       break;
     case APP_STATE_WAIT_DELETE_TEMPLATES: {
-      if (device_ready_) {
+      if (this->device_ready_) {
         ESP_LOGI(TAG, "template/s deleted.");
         this->fpc_hal_delay_ms(20);
         next_state = APP_STATE_WAIT_LIST_TEMPLATES;
@@ -449,21 +479,26 @@ void FingerprintFPC2532Component::process_state(void) {
       break;
     }
     case APP_STATE_SET_CONFIG:
-      if (this->config_received) {
-        if (this->delay_elapsed(1000)) {  // Wait for the device to be fully ready.
-          if (this->status_at_boot) {
-            if (this->switch_state)
-              this->current_config_.sys_flags |= CFG_SYS_FLAG_STATUS_EVT_AT_BOOT;
-
-            else
-              this->current_config_.sys_flags &= ~CFG_SYS_FLAG_STATUS_EVT_AT_BOOT;
-            this->status_at_boot_switch_->publish_state(switch_state);
-          }
-          fpc_cmd_system_config_set_request(&this->current_config_);
-          this->status_at_boot = false;
-          next_state = APP_STATE_WAIT_IDENTIFY;
-          config_received = false;
-        }
+      ESP_LOGI(TAG,
+               "System Config in after SET:\n"
+               "  version                     = %u\n"
+               "  finger_scan_interval_ms     = %u\n"
+               "  sys_flags                   = 0x%08X\n"
+               "  uart_delay_before_irq_ms    = %u\n"
+               "  uart_baudrate               = %u\n"
+               "  idfy_max_consecutive_fails  = %u\n"
+               "  idfy_lockout_time_s         = %u\n"
+               "  idle_time_before_sleep_ms   = %u",
+               current_config_.version, current_config_.finger_scan_interval_ms, current_config_.sys_flags,
+               current_config_.uart_delay_before_irq_ms, current_config_.uart_baudrate,
+               current_config_.idfy_max_consecutive_fails, current_config_.idfy_lockout_time_s,
+               current_config_.idle_time_before_sleep_ms);
+      if (this->device_ready_) {
+        // this->status_at_boot = false;
+        next_state = APP_STATE_WAIT_CONFIG;
+        this->config_received = false;
+        this->config_set = false;
+        this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_CUSTOM);
       }
       break;
 
@@ -472,8 +507,9 @@ void FingerprintFPC2532Component::process_state(void) {
   }
 
   if (next_state != app_state) {
+    this->prev_state = this->app_state;
     ESP_LOGI(TAG, "State transition %d -> %d\n", app_state, next_state);
-    app_state = next_state;
+    this->app_state = next_state;
   }
 }
 
@@ -558,7 +594,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_version_request(void) {
 fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_enroll_request(fpc::fpc_id_type_t *id) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_enroll_request_t cmd_req;
-  device_ready_ = false;
+  this->device_ready_ = false;
 
   if (id->type != ID_TYPE_SPECIFIED && id->type != ID_TYPE_GENERATE_NEW) {
     ESP_LOGE(TAG, "Enroll Request: Invalid parameter");
