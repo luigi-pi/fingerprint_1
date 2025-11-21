@@ -326,7 +326,7 @@ void FingerprintFPC2532Component::setup() {
              this->has_power_pin_ ? "true" : "false");
     if (config_received) {
       if (!has_power_pin_) {
-        ESP_LOGI(TAG, "No power_pin configured for waking up the device: setting not available");
+        ESP_LOGW(TAG, "No power_pin configured for waking up the device: setting not available");
         this->app_state = APP_STATE_SET_CONFIG;
       } else {
         if (this->stop_mode_uart_state_)
