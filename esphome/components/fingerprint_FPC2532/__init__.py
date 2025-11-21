@@ -32,6 +32,7 @@ CONF_FINGERPRINT_FPC2532_ID = "fingerprint_FPC2532_id"
 CONF_SENSOR_POWER_PIN = "sensor_power_pin"
 CONF_IDLE_PERIOD_TO_SLEEP = "idle_period_to_sleep"
 CONF_ENROLL_TIMEOUT = "enroll_timeout"
+CONF_LOCKOUT_TIME = "lockout_time_s"
 
 
 fingerprint_FPC2532_ns = cg.esphome_ns.namespace("fingerprint_FPC2532")
@@ -121,6 +122,7 @@ CONFIG_SCHEMA = cv.All(
                 CONF_IDLE_PERIOD_TO_SLEEP
             ): cv.positive_time_period_milliseconds,
             cv.Optional(CONF_ENROLL_TIMEOUT): cv.positive_time_period_milliseconds,
+            cv.Optional(CONF_LOCKOUT_TIME, default=15): cv.uint8_t,
             cv.Optional(CONF_PASSWORD): cv.uint32_t,
             cv.Optional(CONF_NEW_PASSWORD): cv.uint32_t,
             cv.Optional(CONF_ON_FINGER_SCAN_START): automation.validate_automation(
@@ -198,6 +200,10 @@ async def to_code(config):
     if CONF_NEW_PASSWORD in config:
         new_password = config[CONF_NEW_PASSWORD]
         cg.add(var.set_new_password(new_password))
+
+    if CONF_LOCKOUT_TIME in config:
+        lockout_time_s = config[CONF_LOCKOUT_TIME]
+        cg.add(var.set_lockout_time_s(lockout_time_s))
 
     if CONF_SENSING_PIN in config:
         sensing_pin = await cg.gpio_pin_expression(config[CONF_SENSING_PIN])
