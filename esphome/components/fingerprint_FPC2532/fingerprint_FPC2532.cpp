@@ -738,7 +738,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_system_config_get_request
     cmd_req.cmd.type = FPC_FRAME_TYPE_CMD_REQUEST;
     cmd_req.config_type = type;
 
-    ESP_LOGI(TAG, ">>> CMD_SET_SYSTEM_CONFIG (type=%d)", type);
+    ESP_LOGI(TAG, ">>> CMD_GET_SYSTEM_CONFIG (type=%d)", type);
     result = fpc_send_request(&cmd_req.cmd, sizeof(fpc::fpc_cmd_get_config_request_t));
   }
 
