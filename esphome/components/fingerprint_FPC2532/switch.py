@@ -28,34 +28,6 @@ def validate_icons(config):
     return icon
 
 
-def validate_stop_mode_uart(config):
-    # Load full YAML
-    full_yaml = cg.get_config()  # gives full config tree
-
-    # 1. Check if stop_mode_uart switch exists
-    if config.get(CONF_ID) != CONF_SET_STATUS_AT_BOOT:  # CONF_STOP_MODE_UART:
-        return config
-
-    # 2. Search for fingerprint component with sensor_power_pin
-    found = False
-    for key, comp in full_yaml.items():
-        if (
-            isinstance(comp, dict)
-            and key == "fingerprint_FPC2532"
-            and CONF_SENSOR_POWER_PIN in comp
-        ):
-            found = True
-            break
-
-    if not found:
-        raise cv.Invalid(
-            "The switch 'stop_mode_uart' requires 'sensor_power_pin' to be defined "
-            "under a fingerprint_FPC2532 component."
-        )
-
-    return config
-
-
 # Reference the embedded C++ class
 FingerprintSwitch = (
     cg.global_ns.namespace("esphome")
@@ -71,7 +43,6 @@ CONFIG_SCHEMA = cv.All(
             ),
         }
     ),
-    validate_stop_mode_uart,
 )
 
 

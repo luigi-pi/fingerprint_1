@@ -18,6 +18,7 @@ from esphome.const import (
     CONF_ON_FINGER_SCAN_UNMATCHED,
     CONF_PASSWORD,
     CONF_SENSING_PIN,
+    CONF_SET_STATUS_AT_BOOT,
     CONF_SPEED,
     CONF_STATE,
     CONF_TRIGGER_ID,
@@ -104,6 +105,33 @@ AURA_LED_COLORS = {
 validate_aura_led_colors = cv.enum(AURA_LED_COLORS, upper=True)
 
 
+def validate_status_at_boot_requires_sensor_power_pin(config):
+    """Raise error if a switch with id=status_at_boot exists but no sensor_power_pin in any fingerprint component."""
+    full_config = cg.get_config()  # Full ESPHome config tree
+
+    # Look for switches
+    switches = full_config.get("switch", [])
+    for sw in switches:
+        if (
+            isinstance(sw, dict)
+            and sw.get("platform") == "fingerprint_FPC2532"
+            and sw.get("id") == CONF_SET_STATUS_AT_BOOT
+        ):
+            # Must have at least one fingerprint component with sensor_power_pin
+            fp_components = full_config.get("fingerprint_FPC2532", [])
+            found_pin = False
+            for comp in fp_components:
+                if isinstance(comp, dict) and CONF_SENSOR_POWER_PIN in comp:
+                    found_pin = True
+                    break
+            if not found_pin:
+                raise cv.Invalid(
+                    f"Switch '{CONF_SET_STATUS_AT_BOOT}' requires at least one fingerprint_FPC2532 "
+                    "component with 'sensor_power_pin' defined in YAML."
+                )
+    return config
+
+
 def validate(config):
     if CONF_SENSOR_POWER_PIN in config and CONF_SENSING_PIN not in config:
         raise cv.Invalid("You cannot use the Sensor Power Pin without a Sensing Pin")
@@ -183,6 +211,7 @@ CONFIG_SCHEMA = cv.All(
     .extend(cv.polling_component_schema("500ms"))
     .extend(uart.UART_DEVICE_SCHEMA),
     validate,
+    validate_status_at_boot_requires_sensor_power_pin,
 )
 
 
