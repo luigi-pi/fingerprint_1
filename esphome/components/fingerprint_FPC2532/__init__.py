@@ -32,7 +32,7 @@ CONF_FINGERPRINT_FPC2532_ID = "fingerprint_FPC2532_id"
 CONF_SENSOR_POWER_PIN = "sensor_power_pin"
 CONF_IDLE_PERIOD_TO_SLEEP = "idle_period_to_sleep"
 CONF_ENROLL_TIMEOUT = "enroll_timeout"
-CONF_SET_STATUS_AT_BOOT = "status_at_boot"
+
 
 fingerprint_FPC2532_ns = cg.esphome_ns.namespace("fingerprint_FPC2532")
 FingerprintFPC2532Component = fingerprint_FPC2532_ns.class_(
@@ -103,33 +103,6 @@ AURA_LED_COLORS = {
     "WHITE": AuraLEDColor.WHITE,
 }
 validate_aura_led_colors = cv.enum(AURA_LED_COLORS, upper=True)
-
-
-def validate_status_at_boot_requires_sensor_power_pin(config):
-    """Raise error if a switch with id=status_at_boot exists but no sensor_power_pin in any fingerprint component."""
-    full_config = cg.get_config()  # Full ESPHome config tree
-
-    # Look for switches
-    switches = full_config.get("switch", [])
-    for sw in switches:
-        if (
-            isinstance(sw, dict)
-            and sw.get("platform") == "fingerprint_FPC2532"
-            and sw.get("id") == CONF_SET_STATUS_AT_BOOT
-        ):
-            # Must have at least one fingerprint component with sensor_power_pin
-            fp_components = full_config.get("fingerprint_FPC2532", [])
-            found_pin = False
-            for comp in fp_components:
-                if isinstance(comp, dict) and CONF_SENSOR_POWER_PIN in comp:
-                    found_pin = True
-                    break
-            if not found_pin:
-                raise cv.Invalid(
-                    f"Switch '{CONF_SET_STATUS_AT_BOOT}' requires at least one fingerprint_FPC2532 "
-                    "component with 'sensor_power_pin' defined in YAML."
-                )
-    return config
 
 
 def validate(config):
@@ -211,7 +184,6 @@ CONFIG_SCHEMA = cv.All(
     .extend(cv.polling_component_schema("500ms"))
     .extend(uart.UART_DEVICE_SCHEMA),
     validate,
-    validate_status_at_boot_requires_sensor_power_pin,
 )
 
 
