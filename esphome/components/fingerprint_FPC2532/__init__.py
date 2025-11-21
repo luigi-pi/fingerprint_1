@@ -18,7 +18,6 @@ from esphome.const import (
     CONF_ON_FINGER_SCAN_UNMATCHED,
     CONF_PASSWORD,
     CONF_SENSING_PIN,
-    CONF_SET_STATUS_AT_BOOT,
     CONF_SPEED,
     CONF_STATE,
     CONF_TRIGGER_ID,
@@ -33,6 +32,7 @@ CONF_FINGERPRINT_FPC2532_ID = "fingerprint_FPC2532_id"
 CONF_SENSOR_POWER_PIN = "sensor_power_pin"
 CONF_IDLE_PERIOD_TO_SLEEP = "idle_period_to_sleep"
 CONF_ENROLL_TIMEOUT = "enroll_timeout"
+CONF_SET_STATUS_AT_BOOT = "status_at_boot"
 
 fingerprint_FPC2532_ns = cg.esphome_ns.namespace("fingerprint_FPC2532")
 FingerprintFPC2532Component = fingerprint_FPC2532_ns.class_(
