@@ -361,7 +361,7 @@ void FingerprintFPC2532Component::process_state(void) {
       if (this->config_received) {
         ESP_LOGD(TAG, "CONFIG RECEIVED");
         ESP_LOGI(TAG,
-                 "System Config after GET:\n"s
+                 "System Config after GET:\n"
                  "  version                     = %u\n"
                  "  finger_scan_interval_ms     = %u\n"
                  "  sys_flags                   = 0x%08X\n"
@@ -374,6 +374,7 @@ void FingerprintFPC2532Component::process_state(void) {
                  current_config_.uart_delay_before_irq_ms, current_config_.uart_baudrate,
                  current_config_.idfy_max_consecutive_fails, current_config_.idfy_lockout_time_s,
                  current_config_.idle_time_before_sleep_ms);
+
         if (prev_state == APP_STATE_WAIT_VERSION) {
           next_state = APP_STATE_WAIT_LIST_TEMPLATES;
           this->fpc_cmd_list_templates_request();
