@@ -107,10 +107,6 @@ validate_aura_led_colors = cv.enum(AURA_LED_COLORS, upper=True)
 def validate(config):
     if CONF_SENSOR_POWER_PIN in config and CONF_SENSING_PIN not in config:
         raise cv.Invalid("You cannot use the Sensor Power Pin without a Sensing Pin")
-    if CONF_IDLE_PERIOD_TO_SLEEP in config and CONF_SENSOR_POWER_PIN not in config:
-        raise cv.Invalid(
-            "You cannot have an Idle Period to Sleep without a Sensor Power Pin"
-        )
     return config
 
 

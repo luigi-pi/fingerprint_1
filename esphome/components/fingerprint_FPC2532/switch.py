@@ -5,6 +5,7 @@ from esphome.const import CONF_ICON, CONF_ID
 
 from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
+CONF_SENSOR_POWER_PIN = "sensor_power_pin"
 CONF_SET_STATUS_AT_BOOT = "status_at_boot"
 CONF_STOP_MODE_UART = "stop_mode_uart"
 CONF_UART_IRQ_BEFORE_TX = "uart_irq_before_tx"
@@ -27,15 +28,42 @@ def validate_icons(config):
     return icon
 
 
-def validate_stop_mode_uart_pin(config):
-    """Raise error if stop_mode_uart is defined but no wake_up_pin (CS_N) is declared."""
-    if config[CONF_ID] == CONF_SET_STATUS_AT_BOOT:
-        parent = config[CONF_FINGERPRINT_FPC2532_ID]
-        # Check if the parent has a wake-up pin defined
-        if not getattr(parent, "wake_up_pin", None):
-            raise cv.Invalid(
-                "stop_mode_uart switch requires a system wake_up_pin (CS_N) to be declared in YAML"
-            )
+def final_validate_stop_mode_uart(config):
+    """Ensure stop_mode_uart is used only when sensor_power_pin is defined in
+    a fingerprint component."""
+
+    # 1. Detect if stop_mode_uart switch is present
+    stop_mode_uart_used = False
+
+    for key, item in config.items():
+        if isinstance(item, dict) and item.get(CONF_ID) == CONF_SET_STATUS_AT_BOOT:
+            stop_mode_uart_used = True
+            break
+
+    # If switch not used → nothing to validate
+    if not stop_mode_uart_used:
+        return config
+
+    # 2. Look for ANY fingerprint component with sensor_power_pin defined
+    fingerprint_component_has_pin = False
+
+    for key, item in config.items():
+        # Component must be dictionary AND belong to fingerprint_FPC2532
+        if (
+            isinstance(item, dict)
+            and key == "fingerprint_FPC2532"
+            and CONF_SENSOR_POWER_PIN in item
+        ):
+            fingerprint_component_has_pin = True
+            break
+
+    # 3. Raise error if required pin is missing
+    if not fingerprint_component_has_pin:
+        raise cv.Invalid(
+            "The switch 'stop_mode_uart' requires 'sensor_power_pin' to be "
+            "defined under the fingerprint_FPC2532 component."
+        )
+
     return config
 
 
@@ -53,7 +81,8 @@ CONFIG_SCHEMA = switch.switch_schema(FingerprintSwitch).extend(
         ),
     }
 )
-CONFIG_SCHEMA = cv.All(CONFIG_SCHEMA, validate_stop_mode_uart_pin)
+FINAL_VALIDATE_SCHEMA = cv.final_validate(final_validate_stop_mode_uart)
+CONFIG_SCHEMA = cv.All(CONFIG_SCHEMA, FINAL_VALIDATE_SCHEMA)
 
 
 async def to_code(config):

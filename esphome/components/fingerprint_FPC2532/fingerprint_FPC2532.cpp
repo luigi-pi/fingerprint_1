@@ -279,6 +279,12 @@ void FingerprintFPC2532Component::setup() {
   this->device_state_ = 0;
   this->n_templates_on_device_ = 0;
   this->delay_until_ = 0;
+  this->has_power_pin_ = (this->sensor_power_pin_ != nullptr);
+  if (this->has_power_pin_) {
+    // Starts with output low (disabling power) to avoid glitches in the sensor
+    this->sensor_power_pin_->digital_write(false);
+    this->sensor_power_pin_->setup();
+  }
   // If the user didn't specify an idle period to sleep, applies the default.
   if (this->enroll_timeout_ms_ == UINT32_MAX) {
     this->enroll_timeout_ms_ = DEFAULT_ENROLL_TIMEOUT_MS;
@@ -520,6 +526,16 @@ HOST FUNCTIONS DEFINITONS
 ------------------------
 */
 
+void FingerprintFPC2532Component::sensor_wakeup_() {
+  // Immediately return if there is no power pin or the sensor is already on
+  if ((!this->has_power_pin_))
+    return;
+
+  this->sensor_power_pin_->digital_write(true);
+  delay(1);  // datasheet set min 500uS to wake up device
+  this->sensor_power_pin_->digital_write(false);
+}
+
 /* Command Requests */
 fpc::fpc_result_t FingerprintFPC2532Component::fpc_send_request(fpc::fpc_cmd_hdr_t *cmd, size_t size) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
@@ -543,6 +559,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_send_request(fpc::fpc_cmd_hdr
   }
 
   if (result == FPC_RESULT_OK) {
+    sensor_wakeup_();
     /* Send payload. */
     result = this->fpc_hal_tx((uint8_t *) cmd, size);
     ESP_LOGVV(TAG, "command payload sent");
@@ -555,6 +572,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_send_request(fpc::fpc_cmd_hdr
   if (result == FPC_RESULT_OK) {
     while (!available()) {
       // if (App.get_loop_component_start_time() - start > timeout_ms) {
+      ESP_LOGI(TAG, "waiting time in while loop waiting command feedback %u", millis() - start);
       if (millis() - start > timeout_ms) {
         ESP_LOGE(TAG, "no feedback from sensor available (timeout)");
         return FPC_RESULT_TIMEOUT;

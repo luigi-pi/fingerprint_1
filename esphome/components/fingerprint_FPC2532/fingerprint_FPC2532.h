@@ -178,6 +178,8 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   uint16_t enroll_id;
   uint32_t enroll_idle_time_{0};
   uint32_t enroll_timeout_ms_ = UINT32_MAX;
+  bool has_power_pin_ = false;
+  void sensor_wakeup_();
   const uint8_t RST_PIN_ =
       26;  // RST_N pin -evaluate if add it on init_py to set via yaml like sensing_pin and sensor_power_pin
   GPIOPin *sensing_pin_{nullptr};
