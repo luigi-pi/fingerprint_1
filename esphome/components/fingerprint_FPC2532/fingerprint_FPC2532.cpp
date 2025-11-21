@@ -294,10 +294,24 @@ void FingerprintFPC2532Component::setup() {
   }
   this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
     // this->status_at_boot = true;
-    this->switch_state = state;
+    bool switch_state = state;
     ESP_LOGI(TAG, "switch state (boot) = %s", switch_state ? "true" : "false");
     if (config_received) {
-      if (this->switch_state)
+      if (switch_state)
+        this->current_config_.sys_flags |= CFG_SYS_FLAG_UART_IRQ_BEFORE_TX;
+      else {
+        this->current_config_.sys_flags &= ~CFG_SYS_FLAG_UART_IRQ_BEFORE_TX;
+      }
+      this->app_state = APP_STATE_SET_CONFIG;
+      config_received = false;
+      this->fpc_cmd_system_config_set_request(&this->current_config_);
+    }
+  });
+  this->uart_irq_before_tx_switch_->add_on_state_callback([this](bool state) {
+    bool switch_state = state;
+    ESP_LOGI(TAG, "switch state (irq) = %s", switch_state ? "true" : "false");
+    if (config_received) {
+      if (switch_state)
         this->current_config_.sys_flags |= CFG_SYS_FLAG_STATUS_EVT_AT_BOOT;
       else {
         this->current_config_.sys_flags &= ~CFG_SYS_FLAG_STATUS_EVT_AT_BOOT;
@@ -307,14 +321,9 @@ void FingerprintFPC2532Component::setup() {
       this->fpc_cmd_system_config_set_request(&this->current_config_);
     }
   });
-  this->uart_irq_before_tx_switch_->add_on_state_callback([this](bool state) {
-    this->uart_irq_before_tx = true;
-    this->switch_state = state;
-    ESP_LOGI(TAG, "switch state (irq) = %s", switch_state ? "true" : "false");
-  });
   this->stop_mode_uart_switch_->add_on_state_callback([this](bool state) {
     this->stop_mode_uart = true;
-    this->switch_state = state;
+    bool switch_state = state;
     ESP_LOGI(TAG, "switch state (stop) = %s", switch_state ? "true" : "false");
   });
   this->app_state = APP_STATE_WAIT_READY;

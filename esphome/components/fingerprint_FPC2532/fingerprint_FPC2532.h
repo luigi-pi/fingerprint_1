@@ -171,8 +171,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   bool config_set = false;
   // bool status_at_boot = false;
   bool stop_mode_uart = false;
-  bool uart_irq_before_tx = false;
-  bool switch_state = false;
+  // bool switch_state = false;
   uint32_t start_{0};         // per debug
   uint32_t delay_until_ = 0;  // for non-blocking delays
   uint16_t enroll_id;
