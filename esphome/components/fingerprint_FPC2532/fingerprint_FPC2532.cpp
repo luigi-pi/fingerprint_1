@@ -324,15 +324,20 @@ void FingerprintFPC2532Component::setup() {
     this->stop_mode_uart_state_ = state;
     ESP_LOGI(TAG, "switch state (stop) = %s, has_power_pin = %s", this->stop_mode_uart_state_ ? "true" : "false",
              this->has_power_pin_ ? "true" : "false");
-    if (config_received && has_power_pin_) {
-      if (this->uart_irq_before_tx_state_)
-        this->current_config_.sys_flags |= CFG_SYS_FLAG_UART_IRQ_BEFORE_TX;
-      else {
-        this->current_config_.sys_flags &= ~CFG_SYS_FLAG_UART_IRQ_BEFORE_TX;
+    if (config_received) {
+      if (!has_power_pin_) {
+        ESP_LOGI(TAG, "No power_pin configured for waking up the device: setting not available");
+        this->app_state = APP_STATE_SET_CONFIG;
+      } else {
+        if (this->stop_mode_uart_state_)
+          this->current_config_.sys_flags |= CFG_SYS_FLAG_UART_IN_STOP_MODE;
+        else {
+          this->current_config_.sys_flags &= ~CFG_SYS_FLAG_UART_IN_STOP_MODE;
+        }
+        this->app_state = APP_STATE_SET_CONFIG;
+        config_received = false;
+        this->fpc_cmd_system_config_set_request(&this->current_config_);
       }
-      this->app_state = APP_STATE_SET_CONFIG;
-      config_received = false;
-      this->fpc_cmd_system_config_set_request(&this->current_config_);
     }
   });
   this->app_state = APP_STATE_WAIT_READY;
