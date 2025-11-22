@@ -95,7 +95,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void set_enrolling_binary_sensor(binary_sensor::BinarySensor *enrolling_binary_sensor) {
     this->enrolling_binary_sensor_ = enrolling_binary_sensor;
   }
-  void status_at_boot_binary_sensor(binary_sensor::BinarySensor *status_at_boot_binary_sensor) {
+  void set_status_at_boot_binary_sensor(binary_sensor::BinarySensor *status_at_boot_binary_sensor) {
     this->status_at_boot_binary_sensor_ = status_at_boot_binary_sensor;
   }
   void set_uart_irq_before_tx_binary_sensor(binary_sensor::BinarySensor *uart_irq_before_tx_binary_sensor) {
