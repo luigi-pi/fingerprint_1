@@ -46,7 +46,6 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_FINGERPRINT_COUNT): sensor.sensor_schema(
             icon=ICON_FINGERPRINT,
             accuracy_decimals=0,
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
         cv.Optional(CONF_STATUS): sensor.sensor_schema(
             accuracy_decimals=0,
@@ -55,7 +54,6 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_CAPACITY): sensor.sensor_schema(
             icon=ICON_DATABASE,
             accuracy_decimals=0,
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
         cv.Optional(CONF_NUM_SCANS): sensor.sensor_schema(
             icon=ICON_DATABASE,
@@ -75,7 +73,6 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_LAST_FINGER_ID): sensor.sensor_schema(
             icon=ICON_ACCOUNT,
             accuracy_decimals=0,
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
         cv.Optional(CONF_LAST_CONFIDENCE): sensor.sensor_schema(
             icon=ICON_ACCOUNT_CHECK,
