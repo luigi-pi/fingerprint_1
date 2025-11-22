@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 from esphome.components import text_sensor
 import esphome.config_validation as cv
-from esphome.const import CONF_ICON, CONF_ID
+from esphome.const import CONF_ICON, CONF_ID, ENTITY_CATEGORY_DIAGNOSTIC
 
 from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
@@ -19,7 +19,9 @@ def validate_icons(config):
     return ICON_INFO if sensor_id in config_icon_group else "mdi:checkbox-blank-outline"
 
 
-CONFIG_SCHEMA = text_sensor.text_sensor_schema().extend(
+CONFIG_SCHEMA = text_sensor.text_sensor_schema(
+    entity_category=ENTITY_CATEGORY_DIAGNOSTIC
+).extend(
     {
         cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(
             FingerprintFPC2532Component
