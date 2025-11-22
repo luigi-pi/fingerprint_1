@@ -19,9 +19,7 @@ def validate_icons(config):
     return ICON_INFO if sensor_id in config_icon_group else "mdi:checkbox-blank-outline"
 
 
-CONFIG_SCHEMA = text_sensor.text_sensor_schema(
-    entity_category=ENTITY_CATEGORY_DIAGNOSTIC
-).extend(
+CONFIG_SCHEMA = text_sensor.text_sensor_schema().extend(
     {
         cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(
             FingerprintFPC2532Component
@@ -33,7 +31,7 @@ CONFIG_SCHEMA = text_sensor.text_sensor_schema(
 async def to_code(config):
     hub = await cg.get_variable(config[CONF_FINGERPRINT_FPC2532_ID])
     sens = await text_sensor.new_text_sensor(config)
-
+    config["entity_category"] = ENTITY_CATEGORY_DIAGNOSTIC
     if CONF_ICON not in config:
         icon = validate_icons(config)
         cg.add(sens.set_icon(icon))
