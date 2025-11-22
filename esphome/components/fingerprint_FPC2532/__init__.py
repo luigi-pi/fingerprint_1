@@ -134,7 +134,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(
                 CONF_IDLE_PERIOD_TO_SLEEP
             ): cv.positive_time_period_milliseconds,
-            cv.Optional(CONF_ENROLL_TIMEOUT): cv.positive_time_period_milliseconds,
+            cv.Optional(CONF_ENROLL_TIMEOUT): cv.positive_time_period_seconds,
             cv.Optional(CONF_LOCKOUT_TIME, default=15): cv.uint8_t,
             cv.Optional(CONF_UART_IRQ_BEFORE_TX, default=True): cv.boolean,
             cv.Optional(CONF_STATUS_AT_BOOT, default=True): cv.boolean,
