@@ -378,7 +378,7 @@ void FingerprintFPC2532Component::process_state(void) {
         }
 
         this->current_config_.idfy_lockout_time_s = this->lockout_time_s_;
-        this->current_config_.uart_baudrate = this->uart_baudrate_;
+        // this->current_config_.uart_baudrate = this->uart_baudrate_;
         this->current_config_.idfy_max_consecutive_fails = this->max_consecutive_fails_;
         this->current_config_.idle_time_before_sleep_ms = this->time_before_sleep_ms_;
         this->current_config_.uart_delay_before_irq_ms = this->delay_before_irq_ms_;
