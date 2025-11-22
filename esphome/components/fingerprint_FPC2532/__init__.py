@@ -47,6 +47,14 @@ CFG_UART_BAUDRATE_57600 = 3
 CFG_UART_BAUDRATE_115200 = 4
 CFG_UART_BAUDRATE_921600 = 5
 
+UART_BAUDRATE_OPTIONS = {
+    "9600": CFG_UART_BAUDRATE_9600,
+    "19200": CFG_UART_BAUDRATE_19200,
+    "57600": CFG_UART_BAUDRATE_57600,
+    "115200": CFG_UART_BAUDRATE_115200,
+    "921600": CFG_UART_BAUDRATE_921600,
+}
+
 
 fingerprint_FPC2532_ns = cg.esphome_ns.namespace("fingerprint_FPC2532")
 FingerprintFPC2532Component = fingerprint_FPC2532_ns.class_(
@@ -139,17 +147,8 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_UART_IRQ_BEFORE_TX, default=True): cv.boolean,
             cv.Optional(CONF_STATUS_AT_BOOT, default=True): cv.boolean,
             cv.Optional(CONF_STOP_MODE_UART, default=False): cv.boolean,
-            cv.Optional(
-                CONF_UART_BAUDRATE, default=CFG_UART_BAUDRATE_921600
-            ): cv.one_of(
-                [
-                    CFG_UART_BAUDRATE_9600,
-                    CFG_UART_BAUDRATE_19200,
-                    CFG_UART_BAUDRATE_57600,
-                    CFG_UART_BAUDRATE_115200,
-                    CFG_UART_BAUDRATE_921600,
-                ],
-                int,
+            cv.Optional(CONF_UART_BAUDRATE, default="921600"): cv.enum(
+                UART_BAUDRATE_OPTIONS
             ),
             cv.Optional(CONF_MAX_CONSECUTIVE_FAILS, default=5): cv.uint8_t,
             cv.Optional(
