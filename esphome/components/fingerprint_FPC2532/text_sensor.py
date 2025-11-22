@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 from esphome.components import text_sensor
 import esphome.config_validation as cv
-from esphome.const import CONF_ICON, CONF_ID, ENTITY_CATEGORY_DIAGNOSTIC
+from esphome.const import CONF_ICON, CONF_ID
 
 from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
@@ -31,7 +31,6 @@ CONFIG_SCHEMA = text_sensor.text_sensor_schema().extend(
 async def to_code(config):
     hub = await cg.get_variable(config[CONF_FINGERPRINT_FPC2532_ID])
     sens = await text_sensor.new_text_sensor(config)
-    cg.add(sens.set_entity_category(ENTITY_CATEGORY_DIAGNOSTIC))
     if CONF_ICON not in config:
         icon = validate_icons(config)
         cg.add(sens.set_icon(icon))
