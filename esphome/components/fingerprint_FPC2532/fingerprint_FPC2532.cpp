@@ -260,7 +260,10 @@ void FingerprintFPC2532Component::update() {
     result = fpc_host_sample_handle_rx_data();
     if (result != FPC_RESULT_OK && result != FPC_PENDING_OPERATION) {
       ESP_LOGE(TAG, "Bad incoming data (%d). Wait and try again", result);
-      fpc_hal_delay_ms(10);
+      this->fpc_hal_delay_ms(10);
+      this->password_verified_ = false;
+      this->app_state = APP_STATE_WAIT_READY;
+      fpc_cmd_status_request();
     }
   } else {
     ESP_LOGVV(TAG, "No data available");
@@ -391,7 +394,7 @@ void FingerprintFPC2532Component::process_state(void) {
         }
 
         this->current_config_.idfy_lockout_time_s = this->lockout_time_s_;
-        // this->current_config_.uart_baudrate = this->uart_baudrate_;
+        this->current_config_.uart_baudrate = this->uart_baudrate_;
         this->current_config_.idfy_max_consecutive_fails = this->max_consecutive_fails_;
         this->current_config_.idle_time_before_sleep_ms = this->time_before_sleep_ms_;
         this->current_config_.uart_delay_before_irq_ms = this->delay_before_irq_ms_;
@@ -631,6 +634,11 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_enroll_request(fpc::fpc_i
   fpc::fpc_cmd_enroll_request_t cmd_req;
   this->device_ready_ = false;
 
+  if (!this->password_verified_) {
+    ESP_LOGE(TAG, "Enroll Request: Password not verified");
+    result = FPC_RESULT_FAILURE;
+  }
+
   if (id->type != ID_TYPE_SPECIFIED && id->type != ID_TYPE_GENERATE_NEW) {
     ESP_LOGE(TAG, "Enroll Request: Invalid parameter");
     result = FPC_RESULT_INVALID_PARAM;
@@ -654,6 +662,11 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_enroll_request(fpc::fpc_i
 fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_identify_request(fpc::fpc_id_type_t *id, uint16_t tag) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_identify_request_t cmd_req;
+
+  if (!this->password_verified_) {
+    ESP_LOGE(TAG, "Identify Request: Password not verified");
+    result = FPC_RESULT_FAILURE;
+  }
 
   if (id->type != ID_TYPE_SPECIFIED && id->type != ID_TYPE_ALL) {
     ESP_LOGE(TAG, "Identify: Invalid parameter");
@@ -691,7 +704,10 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_abort(void) {
 fpc::fpc_result_t FingerprintFPC2532Component::fpc_cmd_list_templates_request(void) {
   fpc::fpc_result_t result = FPC_RESULT_OK;
   fpc::fpc_cmd_hdr_t cmd;
-
+  if (!this->password_verified_) {
+    ESP_LOGE(TAG, "List Template Request: Password not verified");
+    result = FPC_RESULT_FAILURE;
+  }
   /* List Template Command Request has no payload */
   cmd.cmd_id = CMD_LIST_TEMPLATES;
   cmd.type = FPC_FRAME_TYPE_CMD_REQUEST;
