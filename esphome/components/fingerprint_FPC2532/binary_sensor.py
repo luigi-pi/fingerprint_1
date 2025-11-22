@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 from esphome.components import binary_sensor
 import esphome.config_validation as cv
-from esphome.const import CONF_ID, ENTITY_CATEGORY_DIAGNOSTIC, ICON_KEY_PLUS
+from esphome.const import CONF_ID
 
 from . import CONF_FINGERPRINT_FPC2532_ID, FingerprintFPC2532Component
 
@@ -30,34 +30,36 @@ def validate_icons(config):
         icon = "mdi:checkbox-blank-outline"
     return icon
 """
-CONFIG_SCHEMA = cv.Schema(
+CONFIG_SCHEMA = binary_sensor.binary_sensor_schema().extend(
     {
         cv.GenerateID(CONF_FINGERPRINT_FPC2532_ID): cv.use_id(
             FingerprintFPC2532Component
         ),
-        cv.Optional(CONF_ENROLLING): binary_sensor.binary_sensor_schema(
-            icon=ICON_KEY_PLUS,
-        ),
-        cv.Optional(CONF_UART_IRQ_BEFORE_TX): binary_sensor.binary_sensor_schema(
-            icon=ICON_CONFIG,
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
-        ),
-        cv.Optional(CONF_SET_STATUS_AT_BOOT): binary_sensor.binary_sensor_schema(
-            icon=ICON_CONFIG,
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
-        ),
-        cv.Optional(CONF_STOP_MODE_UART): binary_sensor.binary_sensor_schema(
-            icon=ICON_CONFIG,
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
-        ),
+        cv.Required(CONF_ID): cv.declare_id(binary_sensor.BinarySensor),
+        cv.Optional(CONF_ENROLLING): cv.boolean,
+        cv.Optional(CONF_UART_IRQ_BEFORE_TX): cv.boolean,
+        cv.Optional(CONF_SET_STATUS_AT_BOOT): cv.boolean,
+        cv.Optional(CONF_STOP_MODE_UART): cv.boolean,
     }
 )
 
 
 async def to_code(config):
     hub = await cg.get_variable(config[CONF_FINGERPRINT_FPC2532_ID])
+
     sens = await binary_sensor.new_binary_sensor(config)
-    cg.add(getattr(hub, f"set_{config[CONF_ID]}_sensor")(sens))
+
+    if CONF_ENROLLING in config:
+        cg.add(hub.set_enrolling_binary_sensor(sens))
+
+    if CONF_UART_IRQ_BEFORE_TX in config:
+        cg.add(hub.set_uart_irq_before_tx_sensor(sens))
+
+    if CONF_SET_STATUS_AT_BOOT in config:
+        cg.add(hub.set_status_at_boot_sensor(sens))
+
+    if CONF_STOP_MODE_UART in config:
+        cg.add(hub.set_stop_mode_uart_sensor(sens))
 
 
 """
