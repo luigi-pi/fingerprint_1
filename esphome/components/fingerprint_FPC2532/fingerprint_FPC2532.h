@@ -98,20 +98,11 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void status_at_boot_binary_sensor(binary_sensor::BinarySensor *status_at_boot_binary_sensor) {
     this->status_at_boot_binary_sensor_ = status_at_boot_binary_sensor;
   }
-  void set_uart_irq_before_tx_binary_sensor(binary_sensor::BinarySensor *set_uart_irq_before_tx_binary_sensor) {
-    this->set_uart_irq_before_tx_binary_sensor_ = set_uart_irq_before_tx_binary_sensor;
+  void set_uart_irq_before_tx_binary_sensor(binary_sensor::BinarySensor *uart_irq_before_tx_binary_sensor) {
+    this->uart_irq_before_tx_binary_sensor_ = uart_irq_before_tx_binary_sensor;
   }
-  void set_stop_mode_uart_binary_sensor(binary_sensor::BinarySensor *set_stop_mode_uart_binary_sensor) {
-    this->set_stop_mode_uart_binary_sensor_ = set_stop_mode_uart_binary_sensor;
-  }
-  void set_status_at_boot_switch(FingerprintSwitch *status_at_boot_switch) {
-    this->status_at_boot_switch_ = status_at_boot_switch;
-  }
-  void set_stop_mode_uart_switch(FingerprintSwitch *stop_mode_uart_switch) {
-    this->stop_mode_uart_switch_ = stop_mode_uart_switch;
-  }
-  void set_uart_irq_before_tx_switch(FingerprintSwitch *uart_irq_before_tx_switch) {
-    this->uart_irq_before_tx_switch_ = uart_irq_before_tx_switch;
+  void set_stop_mode_uart_binary_sensor(binary_sensor::BinarySensor *stop_mode_uart_binary_sensor) {
+    this->stop_mode_uart_binary_sensor_ = stop_mode_uart_binary_sensor;
   }
   void set_scan_interval_ms_sensor(sensor::Sensor *scan_interval_ms_sensor) {
     this->scan_interval_ms_sensor_ = scan_interval_ms_sensor;
@@ -231,10 +222,6 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   sensor::Sensor *lockout_after_nr_of_fails_sensor_{nullptr};
   sensor::Sensor *lockout_time_s_sensor_{nullptr};
   sensor::Sensor *baud_rate_sensor_{nullptr};
-
-  FingerprintSwitch *status_at_boot_switch_{nullptr};
-  FingerprintSwitch *stop_mode_uart_switch_{nullptr};
-  FingerprintSwitch *uart_irq_before_tx_switch_{nullptr};
 
   // sensor::Sensor *capacity_sensor_{nullptr};
   // sensor::Sensor *security_level_sensor_{nullptr};
