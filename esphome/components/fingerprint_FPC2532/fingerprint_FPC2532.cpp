@@ -1185,21 +1185,21 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_get_system_config(fpc::
   }
 
   if (result == FPC_RESULT_OK) {
-    ESP_LOGI(TAG, "%s Config:", cmd_cfg->config_type == 0 ? "Default" : "Custom");
-    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.ver = %d", cmd_cfg->cfg.version);
-    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.sys_flags = %08X:", cmd_cfg->cfg.sys_flags);
+    ESP_LOGV(TAG, "%s Config:", cmd_cfg->config_type == 0 ? "Default" : "Custom");
+    ESP_LOGV(TAG, "CMD_GET_SYSTEM_CONFIG.ver = %d", cmd_cfg->cfg.version);
+    ESP_LOGV(TAG, "CMD_GET_SYSTEM_CONFIG.sys_flags = %08X:", cmd_cfg->cfg.sys_flags);
     if (cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT)
-      ESP_LOGI(TAG, " - CFG_SYS_FLAG_STATUS_EVT_AT_BOOT");
+      ESP_LOGV(TAG, " - CFG_SYS_FLAG_STATUS_EVT_AT_BOOT");
     if (cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IN_STOP_MODE)
-      ESP_LOGI(TAG, " - CFG_SYS_FLAG_UART_IN_STOP_MODE");
+      ESP_LOGV(TAG, " - CFG_SYS_FLAG_UART_IN_STOP_MODE");
     if (cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IRQ_BEFORE_TX)
-      ESP_LOGI(TAG, " - CFG_SYS_FLAG_UART_IRQ_BEFORE_TX");
-    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.uart_irq_dly = %d ms", cmd_cfg->cfg.uart_delay_before_irq_ms);
-    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.uart_baudrate_idx = %d", cmd_cfg->cfg.uart_baudrate);
-    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.finger_scan_intv = %d ms", cmd_cfg->cfg.finger_scan_interval_ms);
-    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.idfy_max_consecutive_fails = %d", cmd_cfg->cfg.idfy_max_consecutive_fails);
-    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.idfy_lockout_time_s = %d s", cmd_cfg->cfg.idfy_lockout_time_s);
-    ESP_LOGI(TAG, "CMD_GET_SYSTEM_CONFIG.idle_time_before_sleep_ms = %d ms", cmd_cfg->cfg.idle_time_before_sleep_ms);
+      ESP_LOGV(TAG, " - CFG_SYS_FLAG_UART_IRQ_BEFORE_TX");
+    ESP_LOGV(TAG, "CMD_GET_SYSTEM_CONFIG.uart_irq_dly = %d ms", cmd_cfg->cfg.uart_delay_before_irq_ms);
+    ESP_LOGV(TAG, "CMD_GET_SYSTEM_CONFIG.uart_baudrate_idx = %d", cmd_cfg->cfg.uart_baudrate);
+    ESP_LOGV(TAG, "CMD_GET_SYSTEM_CONFIG.finger_scan_intv = %d ms", cmd_cfg->cfg.finger_scan_interval_ms);
+    ESP_LOGV(TAG, "CMD_GET_SYSTEM_CONFIG.idfy_max_consecutive_fails = %d", cmd_cfg->cfg.idfy_max_consecutive_fails);
+    ESP_LOGV(TAG, "CMD_GET_SYSTEM_CONFIG.idfy_lockout_time_s = %d s", cmd_cfg->cfg.idfy_lockout_time_s);
+    ESP_LOGV(TAG, "CMD_GET_SYSTEM_CONFIG.idle_time_before_sleep_ms = %d ms", cmd_cfg->cfg.idle_time_before_sleep_ms);
 
     if (this->scan_interval_ms_sensor_ != nullptr)
       this->scan_interval_ms_sensor_->publish_state(cmd_cfg->cfg.finger_scan_interval_ms);
