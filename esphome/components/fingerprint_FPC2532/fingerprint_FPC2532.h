@@ -21,6 +21,7 @@ namespace fingerprint_FPC2532 {
 // using fpc::fpc_result_t; /* to avoid errors due to namespaces */
 const uint8_t MAX_NUMBER_OF_TEMPLATES = 30;
 static const uint32_t DEFAULT_ENROLL_TIMEOUT_MS = 5000;
+static const std::string INITIAL_PASSWORD = "000000000000000000000000";
 typedef enum {
   APP_STATE_WAIT_READY = 0,
   APP_STATE_WAIT_VERSION,
@@ -61,6 +62,7 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void setup() override;
   void dump_config() override;
   void set_sensing_pin(GPIOPin *sensing_pin) { this->sensing_pin_ = sensing_pin; }
+  void set_password(const std::string &password) { this->password_ = password; }
   void set_sensor_power_pin(GPIOPin *sensor_power_pin) { this->sensor_power_pin_ = sensor_power_pin; }
   void set_enroll_timeout_ms(uint32_t period_ms) { this->enroll_timeout_ms_ = period_ms; }
   void set_lockout_time_s(uint8_t lockout_time_s) { this->lockout_time_s_ = lockout_time_s; }
@@ -183,8 +185,9 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   bool config_received = false;
   bool config_set = false;
   // bool status_at_boot = false;
-
-  // bool switch_state = false;
+  bool password_verified_ = false;
+  std::string unique_id_;
+  std::string password_;
   bool status_at_boot_state_ = false;
   bool uart_irq_before_tx_state_ = false;
   bool stop_mode_uart_state_ = false;

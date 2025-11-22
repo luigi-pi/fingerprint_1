@@ -272,7 +272,7 @@ void FingerprintFPC2532Component::setup() {
   this->hal_reset_device();
   this->fpc_hal_init();
   // this->fpc_cmd_abort();
-
+  this->password_verified_ = false;
   this->device_ready_ = false;
   this->version_read_ = false;
   this->list_templates_done_ = false;
@@ -281,7 +281,6 @@ void FingerprintFPC2532Component::setup() {
   this->delay_until_ = 0;
   this->has_power_pin_ = (this->sensor_power_pin_ != nullptr);
   if (this->has_power_pin_) {
-    // Starts with output low (disabling power) to avoid glitches in the sensor
     this->sensor_power_pin_->digital_write(false);
     this->sensor_power_pin_->setup();
   }
@@ -333,6 +332,19 @@ void FingerprintFPC2532Component::process_state(void) {
       ESP_LOGD(TAG, "APP_STATE_WAIT_VERSION");
       if (this->version_read_) {
         this->version_read_ = false;
+        if (!this->password_verified_) {
+          if (this->unique_id_ == this->password_) {
+            ESP_LOGI(TAG, "Device authenticated.");
+            this->password_verified_ = true;
+            return;
+          } else if (this->password_ == INITIAL_PASSWORD) {
+            ESP_LOGW(TAG, "Device password must be reset. Add ID to YAML and reinstall.");
+            return;
+          } else {
+            ESP_LOGE(TAG, "DEVICE PASSWORD INCORRECT");
+            this->mark_failed();
+          }
+        }
         next_state = APP_STATE_WAIT_CONFIG;
         this->fpc_cmd_system_config_get_request(FPC_SYS_CFG_TYPE_CUSTOM);
       }
@@ -978,11 +990,11 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_version(fpc::fpc_cmd_hd
     ESP_LOGI(TAG, "CMD_VERSION.version_str_len = %d", ver->version_str_len);
     ESP_LOGI(TAG, "CMD_VERSION.version = %s", ver->version_str);
     this->version_read_ = true;
-
+    char buf[25];
+    snprintf(buf, sizeof(buf), "%08X%08X%08X", ver->mcu_unique_id[0], ver->mcu_unique_id[1], ver->mcu_unique_id[2]);
+    this->unique_id_ = std::string(buf);
     if (this->unique_id_sensor_ != nullptr) {
-      char buf[25];
-      snprintf(buf, sizeof(buf), "%08X%08X%08X", ver->mcu_unique_id[0], ver->mcu_unique_id[1], ver->mcu_unique_id[2]);
-      this->unique_id_sensor_->publish_state(buf);
+      this->unique_id_sensor_->publish_state(this->unique_id_);
     }
 
     if (this->version_sensor_ != nullptr) {

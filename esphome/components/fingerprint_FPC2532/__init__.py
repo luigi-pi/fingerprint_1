@@ -162,7 +162,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(
                 CONF_FINGER_SCAN_INTERVAL, default="34ms"
             ): cv.positive_time_period_milliseconds,
-            cv.Optional(CONF_PASSWORD): cv.uint32_t,
+            cv.Optional(CONF_PASSWORD): cv.string_strict,
             cv.Optional(CONF_NEW_PASSWORD): cv.uint32_t,
             cv.Optional(CONF_ON_FINGER_SCAN_START): automation.validate_automation(
                 {
