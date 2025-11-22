@@ -31,7 +31,7 @@ CONFIG_SCHEMA = text_sensor.text_sensor_schema().extend(
 async def to_code(config):
     hub = await cg.get_variable(config[CONF_FINGERPRINT_FPC2532_ID])
     sens = await text_sensor.new_text_sensor(config)
-    config["entity_category"] = ENTITY_CATEGORY_DIAGNOSTIC
+    cg.add(sens.set_entity_category(ENTITY_CATEGORY_DIAGNOSTIC))
     if CONF_ICON not in config:
         icon = validate_icons(config)
         cg.add(sens.set_icon(icon))
