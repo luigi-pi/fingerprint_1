@@ -33,7 +33,7 @@ typedef enum {
   APP_STATE_WAIT_DELETE_TEMPLATES,
   APP_STATE_SET_CONFIG
 } app_state_t;
-
+/*
 class FingerprintSwitch : public switch_::Switch {
  public:
   void set_callback(std::function<void(bool)> cb) { callback_ = cb; }
@@ -47,7 +47,7 @@ class FingerprintSwitch : public switch_::Switch {
 
   std::function<void(bool)> callback_;
 };
-
+*/
 class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDevice {
  public:
   //--- State Machine Functions/declarations ---
