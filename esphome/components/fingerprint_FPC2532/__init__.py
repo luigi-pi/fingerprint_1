@@ -3,29 +3,22 @@ import esphome.codegen as cg
 from esphome.components import uart
 import esphome.config_validation as cv
 from esphome.const import (
-    CONF_COLOR,
-    CONF_COUNT,
     CONF_FINGER_ID,
     CONF_ID,
-    CONF_NEW_PASSWORD,
     CONF_ON_ENROLLMENT_DONE,
     CONF_ON_ENROLLMENT_FAILED,
     CONF_ON_ENROLLMENT_SCAN,
     CONF_ON_FINGER_SCAN_INVALID,
     CONF_ON_FINGER_SCAN_MATCHED,
-    CONF_ON_FINGER_SCAN_MISPLACED,
     CONF_ON_FINGER_SCAN_START,
     CONF_ON_FINGER_SCAN_UNMATCHED,
     CONF_PASSWORD,
-    CONF_SENSING_PIN,
-    CONF_SPEED,
-    CONF_STATE,
     CONF_TRIGGER_ID,
 )
 
 CODEOWNERS = ["@luigi-pi"]
 DEPENDENCIES = ["uart"]
-AUTO_LOAD = ["binary_sensor", "sensor", "text_sensor", "switch"]
+AUTO_LOAD = ["binary_sensor", "sensor", "text_sensor"]
 MULTI_CONF = True
 
 CONF_FINGERPRINT_FPC2532_ID = "fingerprint_FPC2532_id"
@@ -56,7 +49,6 @@ UART_BAUDRATE_OPTIONS = {
     "921600": CFG_UART_BAUDRATE_921600,
 }
 
-
 fingerprint_FPC2532_ns = cg.esphome_ns.namespace("fingerprint_FPC2532")
 FingerprintFPC2532Component = fingerprint_FPC2532_ns.class_(
     "FingerprintFPC2532Component", cg.PollingComponent, uart.UARTDevice
@@ -72,10 +64,6 @@ FingerScanMatchedTrigger = fingerprint_FPC2532_ns.class_(
 
 FingerScanUnmatchedTrigger = fingerprint_FPC2532_ns.class_(
     "FingerScanUnmatchedTrigger", automation.Trigger.template()
-)
-
-FingerScanMisplacedTrigger = fingerprint_FPC2532_ns.class_(
-    "FingerScanMisplacedTrigger", automation.Trigger.template()
 )
 
 FingerScanInvalidTrigger = fingerprint_FPC2532_ns.class_(
@@ -99,50 +87,12 @@ CancelEnrollmentAction = fingerprint_FPC2532_ns.class_(
     "CancelEnrollmentAction", automation.Action
 )
 DeleteAction = fingerprint_FPC2532_ns.class_("DeleteAction", automation.Action)
-DeleteAllAction = fingerprint_FPC2532_ns.class_("DeleteAllAction", automation.Action)
-LEDControlAction = fingerprint_FPC2532_ns.class_("LEDControlAction", automation.Action)
-AuraLEDControlAction = fingerprint_FPC2532_ns.class_(
-    "AuraLEDControlAction", automation.Action
-)
-
-AuraLEDState = fingerprint_FPC2532_ns.enum("AuraLEDState", True)
-AURA_LED_STATES = {
-    "BREATHING": AuraLEDState.BREATHING,
-    "FLASHING": AuraLEDState.FLASHING,
-    "ALWAYS_ON": AuraLEDState.ALWAYS_ON,
-    "ALWAYS_OFF": AuraLEDState.ALWAYS_OFF,
-    "GRADUAL_ON": AuraLEDState.GRADUAL_ON,
-    "GRADUAL_OFF": AuraLEDState.GRADUAL_OFF,
-}
-validate_aura_led_states = cv.enum(AURA_LED_STATES, upper=True)
-AuraLEDColor = fingerprint_FPC2532_ns.enum("AuraLEDColor", True)
-AURA_LED_COLORS = {
-    "RED": AuraLEDColor.RED,
-    "BLUE": AuraLEDColor.BLUE,
-    "PURPLE": AuraLEDColor.PURPLE,
-    "GREEN": AuraLEDColor.GREEN,
-    "YELLOW": AuraLEDColor.YELLOW,
-    "CYAN": AuraLEDColor.CYAN,
-    "WHITE": AuraLEDColor.WHITE,
-}
-validate_aura_led_colors = cv.enum(AURA_LED_COLORS, upper=True)
-
-
-def validate(config):
-    if CONF_SENSOR_POWER_PIN in config and CONF_SENSING_PIN not in config:
-        raise cv.Invalid("You cannot use the Sensor Power Pin without a Sensing Pin")
-    return config
-
 
 CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(FingerprintFPC2532Component),
-            cv.Optional(CONF_SENSING_PIN): pins.gpio_input_pin_schema,
             cv.Optional(CONF_SENSOR_POWER_PIN): pins.gpio_output_pin_schema,
-            cv.Optional(
-                CONF_IDLE_PERIOD_TO_SLEEP
-            ): cv.positive_time_period_milliseconds,
             cv.Optional(CONF_ENROLL_TIMEOUT): cv.positive_time_period_seconds,
             cv.Optional(
                 CONF_LOCKOUT_TIME, default="15s"
@@ -164,7 +114,6 @@ CONFIG_SCHEMA = cv.All(
                 CONF_FINGER_SCAN_INTERVAL, default="34ms"
             ): cv.positive_time_period_milliseconds,
             cv.Optional(CONF_PASSWORD, default=INITIAL_PASSWORD): cv.string_strict,
-            cv.Optional(CONF_NEW_PASSWORD): cv.uint32_t,
             cv.Optional(CONF_ON_FINGER_SCAN_START): automation.validate_automation(
                 {
                     cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
@@ -183,13 +132,6 @@ CONFIG_SCHEMA = cv.All(
                 {
                     cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
                         FingerScanUnmatchedTrigger
-                    ),
-                }
-            ),
-            cv.Optional(CONF_ON_FINGER_SCAN_MISPLACED): automation.validate_automation(
-                {
-                    cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
-                        FingerScanMisplacedTrigger
                     ),
                 }
             ),
@@ -224,8 +166,7 @@ CONFIG_SCHEMA = cv.All(
         }
     )
     .extend(cv.polling_component_schema("500ms"))
-    .extend(uart.UART_DEVICE_SCHEMA),
-    validate,
+    .extend(uart.UART_DEVICE_SCHEMA)
 )
 
 
@@ -236,10 +177,6 @@ async def to_code(config):
         password = config[CONF_PASSWORD]
         cg.add(var.set_password(password))
     await uart.register_uart_device(var, config)
-
-    if CONF_NEW_PASSWORD in config:
-        new_password = config[CONF_NEW_PASSWORD]
-        cg.add(var.set_new_password(new_password))
 
     if CONF_LOCKOUT_TIME in config:
         lockout_time_s = config[CONF_LOCKOUT_TIME]
@@ -277,17 +214,9 @@ async def to_code(config):
         uart_irq_before_tx = config[CONF_UART_IRQ_BEFORE_TX]
         cg.add(var.set_uart_irq_before_tx(uart_irq_before_tx))
 
-    if CONF_SENSING_PIN in config:
-        sensing_pin = await cg.gpio_pin_expression(config[CONF_SENSING_PIN])
-        cg.add(var.set_sensing_pin(sensing_pin))
-
     if CONF_SENSOR_POWER_PIN in config:
         sensor_power_pin = await cg.gpio_pin_expression(config[CONF_SENSOR_POWER_PIN])
         cg.add(var.set_sensor_power_pin(sensor_power_pin))
-
-    if CONF_IDLE_PERIOD_TO_SLEEP in config:
-        idle_period_to_sleep_ms = config[CONF_IDLE_PERIOD_TO_SLEEP]
-        cg.add(var.set_idle_period_to_sleep_ms(idle_period_to_sleep_ms))
 
     if CONF_ENROLL_TIMEOUT in config:
         enroll_timeout_ms = config[CONF_ENROLL_TIMEOUT]
@@ -306,15 +235,11 @@ async def to_code(config):
     for conf in config.get(CONF_ON_FINGER_SCAN_UNMATCHED, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [], conf)
-
-    for conf in config.get(CONF_ON_FINGER_SCAN_MISPLACED, []):
-        trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
-        await automation.build_automation(trigger, [], conf)
-
+    """
     for conf in config.get(CONF_ON_FINGER_SCAN_INVALID, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [(cg.uint16, "capture_error")], conf)
-
+    """
     for conf in config.get(CONF_ON_ENROLLMENT_SCAN, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [(cg.uint16, "finger_id")], conf)
@@ -385,69 +310,4 @@ async def fingerprint_FPC2532_delete_to_code(config, action_id, template_arg, ar
 
     template_ = await cg.templatable(config[CONF_FINGER_ID], args, cg.uint16)
     cg.add(var.set_finger_id(template_))
-    return var
-
-
-@automation.register_action(
-    "fingerprint_FPC2532.delete_all",
-    DeleteAllAction,
-    cv.Schema(
-        {
-            cv.GenerateID(): cv.use_id(FingerprintFPC2532Component),
-        }
-    ),
-)
-async def fingerprint_FPC2532_delete_all_to_code(config, action_id, template_arg, args):
-    var = cg.new_Pvariable(action_id, template_arg)
-    await cg.register_parented(var, config[CONF_ID])
-    return var
-
-
-FINGERPRINT__LED_CONTROL_ACTION_SCHEMA = cv.maybe_simple_value(
-    {
-        cv.GenerateID(): cv.use_id(FingerprintFPC2532Component),
-        cv.Required(CONF_STATE): cv.templatable(cv.boolean),
-    },
-    key=CONF_STATE,
-)
-
-
-@automation.register_action(
-    "fingerprint_FPC2532.led_control",
-    LEDControlAction,
-    FINGERPRINT__LED_CONTROL_ACTION_SCHEMA,
-)
-async def fingerprint_FPC2532_led_control_to_code(
-    config, action_id, template_arg, args
-):
-    var = cg.new_Pvariable(action_id, template_arg)
-    await cg.register_parented(var, config[CONF_ID])
-
-    template_ = await cg.templatable(config[CONF_STATE], args, cg.bool_)
-    cg.add(var.set_state(template_))
-    return var
-
-
-@automation.register_action(
-    "fingerprint_FPC2532.aura_led_control",
-    AuraLEDControlAction,
-    cv.Schema(
-        {
-            cv.GenerateID(): cv.use_id(FingerprintFPC2532Component),
-            cv.Required(CONF_STATE): cv.templatable(validate_aura_led_states),
-            cv.Required(CONF_SPEED): cv.templatable(cv.uint8_t),
-            cv.Required(CONF_COLOR): cv.templatable(validate_aura_led_colors),
-            cv.Required(CONF_COUNT): cv.templatable(cv.uint8_t),
-        }
-    ),
-)
-async def fingerprint_FPC2532_aura_led_control_to_code(
-    config, action_id, template_arg, args
-):
-    var = cg.new_Pvariable(action_id, template_arg)
-    await cg.register_parented(var, config[CONF_ID])
-
-    for key in [CONF_STATE, CONF_SPEED, CONF_COLOR, CONF_COUNT]:
-        template_ = await cg.templatable(config[key], args, cg.uint8)
-        cg.add(getattr(var, f"set_{key}")(template_))
     return var

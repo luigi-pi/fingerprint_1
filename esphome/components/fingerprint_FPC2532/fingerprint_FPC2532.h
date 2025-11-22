@@ -162,11 +162,6 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void add_on_finger_scan_start_callback(std::function<void()> callback) {
     this->finger_scan_start_callback_.add(std::move(callback));
   }
-  /*
-  //void add_on_finger_scan_misplaced_callback(std::function<void()> callback) {
-    this->finger_scan_misplaced_callback_.add(std::move(callback));
-  }
-  */
   void add_on_finger_scan_invalid_callback(std::function<void(uint16_t)> callback) {
     this->finger_scan_invalid_callback_.add(std::move(callback));
   }
@@ -238,7 +233,6 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   CallbackManager<void()> finger_scan_unmatched_callback_;
   CallbackManager<void(uint16_t)> finger_scan_invalid_callback_;
   CallbackManager<void()> finger_scan_start_callback_;
-  // CallbackManager<void()> finger_scan_misplaced_callback_;
   CallbackManager<void(uint16_t)> enrollment_scan_callback_;
   CallbackManager<void(uint16_t)> enrollment_done_callback_;
   CallbackManager<void(uint16_t)> enrollment_failed_callback_;
@@ -305,14 +299,7 @@ class FingerScanStartTrigger : public Trigger<> {
     parent->add_on_finger_scan_start_callback([this]() { this->trigger(); });
   }
 };
-/*
-class FingerScanMisplacedTrigger : public Trigger<> {
- public:
-  explicit FingerScanMisplacedTrigger(FingerprintFPC2532Component *parent) {
-    parent->add_on_finger_scan_misplaced_callback([this]() { this->trigger(); });
-  }
-};
-*/
+
 class FingerScanInvalidTrigger : public Trigger<uint16_t> {
  public:
   explicit FingerScanInvalidTrigger(FingerprintFPC2532Component *parent) {
