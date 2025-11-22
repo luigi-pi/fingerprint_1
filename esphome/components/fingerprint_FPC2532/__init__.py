@@ -153,13 +153,13 @@ CONFIG_SCHEMA = cv.All(
             ),
             cv.Optional(CONF_MAX_CONSECUTIVE_FAILS, default=5): cv.uint8_t,
             cv.Optional(
-                CONF_TIME_BEFORE_SLEEP, default=0
+                CONF_TIME_BEFORE_SLEEP, default="0ms"
             ): cv.positive_time_period_milliseconds,
             cv.Optional(
-                CONF_DELAY_BEFORE_IRQ, default=1
+                CONF_DELAY_BEFORE_IRQ, default="1ms"
             ): cv.positive_time_period_milliseconds,
             cv.Optional(
-                CONF_FINGER_SCAN_INTERVAL, default=34
+                CONF_FINGER_SCAN_INTERVAL, default="34ms"
             ): cv.positive_time_period_milliseconds,
             cv.Optional(CONF_PASSWORD): cv.uint32_t,
             cv.Optional(CONF_NEW_PASSWORD): cv.uint32_t,
