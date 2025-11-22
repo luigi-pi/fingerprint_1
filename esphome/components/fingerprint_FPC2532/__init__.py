@@ -41,6 +41,7 @@ CONF_MAX_CONSECUTIVE_FAILS = "max_consecutive_fails"
 CONF_TIME_BEFORE_SLEEP = "time_before_sleep_ms"
 CONF_DELAY_BEFORE_IRQ = "delay_before_irq_ms"
 CONF_FINGER_SCAN_INTERVAL = "finger_scan_interval_ms"
+INITIAL_PASSWORD = "000000000000000000000000"
 CFG_UART_BAUDRATE_9600 = 1
 CFG_UART_BAUDRATE_19200 = 2
 CFG_UART_BAUDRATE_57600 = 3
@@ -162,7 +163,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(
                 CONF_FINGER_SCAN_INTERVAL, default="34ms"
             ): cv.positive_time_period_milliseconds,
-            cv.Optional(CONF_PASSWORD): cv.string_strict,
+            cv.Optional(CONF_PASSWORD, default=INITIAL_PASSWORD): cv.string_strict,
             cv.Optional(CONF_NEW_PASSWORD): cv.uint32_t,
             cv.Optional(CONF_ON_FINGER_SCAN_START): automation.validate_automation(
                 {
