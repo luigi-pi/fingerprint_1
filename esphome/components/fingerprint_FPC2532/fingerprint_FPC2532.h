@@ -95,6 +95,15 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void set_enrolling_binary_sensor(binary_sensor::BinarySensor *enrolling_binary_sensor) {
     this->enrolling_binary_sensor_ = enrolling_binary_sensor;
   }
+  void status_at_boot_binary_sensor(binary_sensor::BinarySensor *status_at_boot_binary_sensor) {
+    this->status_at_boot_binary_sensor_ = status_at_boot_binary_sensor;
+  }
+  void set_uart_irq_before_tx_binary_sensor(binary_sensor::BinarySensor *set_uart_irq_before_tx_binary_sensor) {
+    this->set_uart_irq_before_tx_binary_sensor_ = set_uart_irq_before_tx_binary_sensor;
+  }
+  void set_stop_mode_uart_binary_sensor(binary_sensor::BinarySensor *set_stop_mode_uart_binary_sensor) {
+    this->set_stop_mode_uart_binary_sensor_ = set_stop_mode_uart_binary_sensor;
+  }
   void set_status_at_boot_switch(FingerprintSwitch *status_at_boot_switch) {
     this->status_at_boot_switch_ = status_at_boot_switch;
   }
@@ -232,7 +241,9 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   sensor::Sensor *last_finger_id_sensor_{nullptr};
   // sensor::Sensor *last_confidence_sensor_{nullptr};
   binary_sensor::BinarySensor *enrolling_binary_sensor_{nullptr};
-
+  binary_sensor::BinarySensor *uart_irq_before_tx_binary_sensor_{nullptr};
+  binary_sensor::BinarySensor *stop_mode_uart_binary_sensor_{nullptr};
+  binary_sensor::BinarySensor *status_at_boot_binary_sensor_{nullptr};
   CallbackManager<void(uint16_t, uint16_t)> finger_scan_matched_callback_;
   CallbackManager<void()> finger_scan_unmatched_callback_;
   CallbackManager<void(uint16_t)> finger_scan_invalid_callback_;

@@ -1190,23 +1190,23 @@ fpc::fpc_result_t FingerprintFPC2532Component::parse_cmd_get_system_config(fpc::
     if (this->baud_rate_sensor_ != nullptr)
       this->baud_rate_sensor_->publish_state(cmd_cfg->cfg.uart_baudrate);
 
-    if (this->status_at_boot_switch_ != nullptr) {
+    if (this->status_at_boot_binary_sensor_ != nullptr) {
       if ((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_STATUS_EVT_AT_BOOT) != 0)
-        this->status_at_boot_switch_->turn_on();
+        this->status_at_boot_binary_sensor_->publish_state(true);
       else
-        this->status_at_boot_switch_->turn_off();
+        this->status_at_boot_binary_sensor_->publish_state(false);
     }
-    if (this->stop_mode_uart_switch_ != nullptr) {
+    if (this->stop_mode_uart_binary_sensor_ != nullptr) {
       if ((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IN_STOP_MODE) != 0)
-        this->stop_mode_uart_switch_->turn_on();
+        this->stop_mode_uart_binary_sensor_->publish_state(true);
       else
-        this->stop_mode_uart_switch_->turn_off();
+        this->stop_mode_uart_binary_sensor_->publish_state(false);
     }
-    if (this->uart_irq_before_tx_switch_ != nullptr) {
+    if (this->uart_irq_before_tx_binary_sensor_ != nullptr) {
       if ((cmd_cfg->cfg.sys_flags & CFG_SYS_FLAG_UART_IRQ_BEFORE_TX) != 0)
-        this->uart_irq_before_tx_switch_->turn_on();
+        this->uart_irq_before_tx_binary_sensor_->publish_state(true);
       else
-        this->uart_irq_before_tx_switch_->turn_off();
+        this->uart_irq_before_tx_binary_sensor_->publish_state(false);
     }
 
     this->config_received = true;
