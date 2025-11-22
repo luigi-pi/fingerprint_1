@@ -338,9 +338,11 @@ void FingerprintFPC2532Component::process_state(void) {
             this->password_verified_ = true;
           } else if (this->password_ == INITIAL_PASSWORD) {
             ESP_LOGW(TAG, "Device password must be reset. Add ID to YAML and reinstall.");
+            this->password_verified_ = false;
             return;
           } else {
             ESP_LOGE(TAG, "DEVICE PASSWORD INCORRECT");
+            this->password_verified_ = false;
             this->mark_failed();
           }
         }

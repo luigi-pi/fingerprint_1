@@ -21,7 +21,7 @@ namespace fingerprint_FPC2532 {
 // using fpc::fpc_result_t; /* to avoid errors due to namespaces */
 const uint8_t MAX_NUMBER_OF_TEMPLATES = 30;
 static const uint32_t DEFAULT_ENROLL_TIMEOUT_MS = 5000;
-static const std::string INITIAL_PASSWORD = "000000000000000000000000";
+static const std::string INITIAL_PASSWORD = "0";
 typedef enum {
   APP_STATE_WAIT_READY = 0,
   APP_STATE_WAIT_VERSION,
