@@ -33,6 +33,19 @@ CONF_SENSOR_POWER_PIN = "sensor_power_pin"
 CONF_IDLE_PERIOD_TO_SLEEP = "idle_period_to_sleep"
 CONF_ENROLL_TIMEOUT = "enroll_timeout"
 CONF_LOCKOUT_TIME = "lockout_time_s"
+CONF_UART_IRQ_BEFORE_TX = "uart_irq_before_tx"
+CONF_STATUS_AT_BOOT = "status_at_boot"
+CONF_STOP_MODE_UART = "stop_mode_uart"
+CONF_UART_BAUDRATE = "uart_baudrate"
+CONF_MAX_CONSECUTIVE_FAILS = "max_consecutive_fails"
+CONF_TIME_BEFORE_SLEEP = "time_before_sleep_ms"
+CONF_DELAY_BEFORE_IRQ = "delay_before_irq_ms"
+CONF_FINGER_SCAN_INTERVAL = "finger_scan_interval_ms"
+CFG_UART_BAUDRATE_9600 = 1
+CFG_UART_BAUDRATE_19200 = 2
+CFG_UART_BAUDRATE_57600 = 3
+CFG_UART_BAUDRATE_115200 = 4
+CFG_UART_BAUDRATE_921600 = 5
 
 
 fingerprint_FPC2532_ns = cg.esphome_ns.namespace("fingerprint_FPC2532")
@@ -123,6 +136,31 @@ CONFIG_SCHEMA = cv.All(
             ): cv.positive_time_period_milliseconds,
             cv.Optional(CONF_ENROLL_TIMEOUT): cv.positive_time_period_milliseconds,
             cv.Optional(CONF_LOCKOUT_TIME, default=15): cv.uint8_t,
+            cv.Optional(CONF_UART_IRQ_BEFORE_TX, default=True): cv.bool,
+            cv.Optional(CONF_STATUS_AT_BOOT, default=True): cv.bool,
+            cv.Optional(CONF_STOP_MODE_UART, default=False): cv.bool,
+            cv.Optional(
+                CONF_UART_BAUDRATE, default=CFG_UART_BAUDRATE_921600
+            ): cv.one_of(
+                [
+                    CFG_UART_BAUDRATE_9600,
+                    CFG_UART_BAUDRATE_19200,
+                    CFG_UART_BAUDRATE_57600,
+                    CFG_UART_BAUDRATE_115200,
+                    CFG_UART_BAUDRATE_921600,
+                ],
+                int,
+            ),
+            cv.Optional(CONF_MAX_CONSECUTIVE_FAILS, default=5): cv.uint8_t,
+            cv.Optional(
+                CONF_TIME_BEFORE_SLEEP, default=0
+            ): cv.positive_time_period_milliseconds,
+            cv.Optional(
+                CONF_DELAY_BEFORE_IRQ, default=1
+            ): cv.positive_time_period_milliseconds,
+            cv.Optional(
+                CONF_FINGER_SCAN_INTERVAL, default=34
+            ): cv.positive_time_period_milliseconds,
             cv.Optional(CONF_PASSWORD): cv.uint32_t,
             cv.Optional(CONF_NEW_PASSWORD): cv.uint32_t,
             cv.Optional(CONF_ON_FINGER_SCAN_START): automation.validate_automation(
@@ -204,6 +242,38 @@ async def to_code(config):
     if CONF_LOCKOUT_TIME in config:
         lockout_time_s = config[CONF_LOCKOUT_TIME]
         cg.add(var.set_lockout_time_s(lockout_time_s))
+
+    if CONF_FINGER_SCAN_INTERVAL in config:
+        finger_scan_interval_ms = config[CONF_FINGER_SCAN_INTERVAL]
+        cg.add(var.set_finger_scan_interval_ms(finger_scan_interval_ms))
+
+    if CONF_DELAY_BEFORE_IRQ in config:
+        delay_before_irq_ms = config[CONF_DELAY_BEFORE_IRQ]
+        cg.add(var.set_delay_before_irq_ms(delay_before_irq_ms))
+
+    if CONF_TIME_BEFORE_SLEEP in config:
+        time_before_sleep_ms = config[CONF_TIME_BEFORE_SLEEP]
+        cg.add(var.set_time_before_sleep_ms(time_before_sleep_ms))
+
+    if CONF_MAX_CONSECUTIVE_FAILS in config:
+        max_consecutive_fails = config[CONF_MAX_CONSECUTIVE_FAILS]
+        cg.add(var.set_max_consecutive_fails(max_consecutive_fails))
+
+    if CONF_UART_BAUDRATE in config:
+        uart_baudrate = config[CONF_UART_BAUDRATE]
+        cg.add(var.set_uart_baudrate(uart_baudrate))
+
+    if CONF_STOP_MODE_UART in config:
+        stop_mode_uart = config[CONF_STOP_MODE_UART]
+        cg.add(var.set_stop_mode_uart(stop_mode_uart))
+
+    if CONF_STATUS_AT_BOOT in config:
+        status_at_boot = config[CONF_STATUS_AT_BOOT]
+        cg.add(var.set_status_at_boot(status_at_boot))
+
+    if CONF_UART_IRQ_BEFORE_TX in config:
+        uart_irq_before_tx = config[CONF_UART_IRQ_BEFORE_TX]
+        cg.add(var.set_uart_irq_before_tx(uart_irq_before_tx))
 
     if CONF_SENSING_PIN in config:
         sensing_pin = await cg.gpio_pin_expression(config[CONF_SENSING_PIN])

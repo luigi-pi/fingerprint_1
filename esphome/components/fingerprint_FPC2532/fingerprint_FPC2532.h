@@ -64,7 +64,18 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   void set_sensor_power_pin(GPIOPin *sensor_power_pin) { this->sensor_power_pin_ = sensor_power_pin; }
   void set_enroll_timeout_ms(uint32_t period_ms) { this->enroll_timeout_ms_ = period_ms; }
   void set_lockout_time_s(uint8_t lockout_time_s) { this->lockout_time_s_ = lockout_time_s; }
-
+  void set_finger_scan_interval_ms(uint16_t finger_scan_interval_ms) {
+    this->finger_scan_interval_ms_ = finger_scan_interval_ms;
+  }
+  void set_delay_before_irq_ms(uint8_t delay_before_irq_ms) { this->delay_before_irq_ms_ = delay_before_irq_ms; }
+  void set_time_before_sleep_ms(uint16_t time_before_sleep_ms) { this->time_before_sleep_ms_ = time_before_sleep_ms; }
+  void set_max_consecutive_fails(uint8_t max_consecutive_fails) {
+    this->max_consecutive_fails_ = max_consecutive_fails;
+  }
+  void set_uart_baudrate(uint8_t uart_baudrate) { this->uart_baudrate_ = uart_baudrate; }
+  void set_stop_mode_uart(bool stop_mode_uart) { this->stop_mode_uart_ = stop_mode_uart; }
+  void set_status_at_boot(bool status_at_boot) { this->status_at_boot_ = status_at_boot; }
+  void set_uart_irq_before_tx(bool uart_irq_before_tx) { this->uart_irq_before_tx_ = uart_irq_before_tx; }
   void set_status_sensor(sensor::Sensor *status_sensor) { this->status_sensor_ = status_sensor; }
   void set_text_status_sensor(text_sensor::TextSensor *text_status_sensor) {
     this->text_status_sensor_ = text_status_sensor;
@@ -183,6 +194,14 @@ class FingerprintFPC2532Component : public PollingComponent, public uart::UARTDe
   uint32_t enroll_idle_time_{0};
   uint32_t enroll_timeout_ms_ = UINT32_MAX;
   uint8_t lockout_time_s_ = UINT8_MAX;
+  uint16_t finger_scan_interval_ms_ = 34;
+  uint8_t delay_before_irq_ms_ = 0;
+  uint16_t time_before_sleep_ms_ = 0;
+  uint8_t max_consecutive_fails_ = 5;
+  uint8_t uart_baudrate_ = CFG_UART_BAUDRATE_921600;
+  bool stop_mode_uart_ = false;
+  bool status_at_boot_ = true;
+  bool uart_irq_before_tx_ = true;
 
   bool has_power_pin_ = false;
   void sensor_wakeup_();

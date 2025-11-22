@@ -292,56 +292,6 @@ void FingerprintFPC2532Component::setup() {
   if (this->enrolling_binary_sensor_ != nullptr) {
     this->enrolling_binary_sensor_->publish_state(false);
   }
-
-  this->status_at_boot_switch_->add_on_state_callback([this](bool state) {
-    this->status_at_boot_state_ = state;
-    ESP_LOGI(TAG, "switch state (boot) = %s", this->status_at_boot_state_ ? "true" : "false");
-    if (config_received) {
-      if (this->status_at_boot_state_)
-        this->current_config_.sys_flags |= CFG_SYS_FLAG_STATUS_EVT_AT_BOOT;
-      else {
-        this->current_config_.sys_flags &= ~CFG_SYS_FLAG_STATUS_EVT_AT_BOOT;
-      }
-      this->app_state = APP_STATE_SET_CONFIG;
-      config_received = false;
-      this->fpc_cmd_system_config_set_request(&this->current_config_);
-    }
-  });
-  this->uart_irq_before_tx_switch_->add_on_state_callback([this](bool state) {
-    this->uart_irq_before_tx_state_ = state;
-    ESP_LOGI(TAG, "switch state (irq) = %s", this->uart_irq_before_tx_state_ ? "true" : "false");
-    if (config_received) {
-      if (this->uart_irq_before_tx_state_)
-        this->current_config_.sys_flags |= CFG_SYS_FLAG_UART_IRQ_BEFORE_TX;
-      else {
-        this->current_config_.sys_flags &= ~CFG_SYS_FLAG_UART_IRQ_BEFORE_TX;
-      }
-      this->app_state = APP_STATE_SET_CONFIG;
-      config_received = false;
-      this->fpc_cmd_system_config_set_request(&this->current_config_);
-    }
-  });
-  this->stop_mode_uart_switch_->add_on_state_callback([this](bool state) {
-    this->stop_mode_uart_state_ = state;
-    ESP_LOGI(TAG, "switch state (stop) = %s, has_power_pin = %s", this->stop_mode_uart_state_ ? "true" : "false",
-             this->has_power_pin_ ? "true" : "false");
-    if (config_received) {
-      if (!has_power_pin_) {
-        ESP_LOGW(TAG, "No power_pin configured for waking up the device: setting not available");
-        this->app_state = APP_STATE_SET_CONFIG;
-      } else {
-        if (this->stop_mode_uart_state_)
-          this->current_config_.sys_flags |= CFG_SYS_FLAG_UART_IN_STOP_MODE;
-        else {
-          this->current_config_.sys_flags &= ~CFG_SYS_FLAG_UART_IN_STOP_MODE;
-        }
-        this->app_state = APP_STATE_SET_CONFIG;
-        config_received = false;
-        this->fpc_cmd_system_config_set_request(&this->current_config_);
-      }
-    }
-  });
-
   this->app_state = APP_STATE_WAIT_READY;
   this->fpc_cmd_status_request();
 }
@@ -406,16 +356,44 @@ void FingerprintFPC2532Component::process_state(void) {
                   current_config_.idfy_max_consecutive_fails, current_config_.idfy_lockout_time_s,
                   current_config_.idle_time_before_sleep_ms);
 
+        if (this->uart_irq_before_tx_) {
+          this->current_config_.sys_flags |= CFG_SYS_FLAG_UART_IRQ_BEFORE_TX;
+        } else {
+          this->current_config_.sys_flags &= ~CFG_SYS_FLAG_UART_IRQ_BEFORE_TX;
+        }
+
+        if (this->status_at_boot_) {
+          this->current_config_.sys_flags |= CFG_SYS_FLAG_STATUS_EVT_AT_BOOT;
+        } else {
+          this->current_config_.sys_flags &= ~CFG_SYS_FLAG_STATUS_EVT_AT_BOOT;
+        }
+
+        if (this->stop_mode_uart_ && has_power_pin_) {
+          this->current_config_.sys_flags |= CFG_SYS_FLAG_UART_IN_STOP_MODE;
+        } else if (this->stop_mode_uart_ && !has_power_pin_) {
+          ESP_LOGW(TAG, "No power_pin configured for waking up the device: setting not available");
+          this->current_config_.sys_flags |= CFG_SYS_FLAG_UART_IN_STOP_MODE;
+        } else {
+          this->current_config_.sys_flags &= ~CFG_SYS_FLAG_UART_IN_STOP_MODE;
+        }
+
+        this->current_config_.idfy_lockout_time_s = this->lockout_time_s_;
+        this->current_config_.uart_baudrate = this->uart_baudrate_;
+        this->current_config_.idfy_max_consecutive_fails = this->max_consecutive_fails_;
+        this->current_config_.idle_time_before_sleep_ms = this->time_before_sleep_ms_;
+        this->current_config_.uart_delay_before_irq_ms = this->delay_before_irq_ms_;
+        this->current_config_.finger_scan_interval_ms = this->finger_scan_interval_ms_;
+
         if (prev_state == APP_STATE_WAIT_VERSION) {
+          next_state = APP_STATE_SET_CONFIG;
+          this->fpc_cmd_system_config_set_request(&this->current_config_);
+        } else if (prev_state == APP_STATE_SET_CONFIG) {
           next_state = APP_STATE_WAIT_LIST_TEMPLATES;
           this->fpc_cmd_list_templates_request();
-        } else if (prev_state == APP_STATE_SET_CONFIG) {
-          next_state = APP_STATE_WAIT_IDENTIFY;
-          fpc::fpc_id_type_t id_type = {ID_TYPE_ALL, 0};
-          this->fpc_cmd_identify_request(&id_type, 0);
         }
       }
       break;
+
     case APP_STATE_WAIT_LIST_TEMPLATES:
       ESP_LOGI(TAG, "APP_STATE_WAIT_LIST_TEMPLATES");
       if (this->list_templates_done_) {
