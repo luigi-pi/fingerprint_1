@@ -48,12 +48,12 @@ async def to_code(config):
 
     if CONF_UART_IRQ_BEFORE_TX in config:
         sens = await binary_sensor.new_binary_sensor(config[CONF_UART_IRQ_BEFORE_TX])
-        cg.add(hub.set_uart_irq_before_tx_sensor(sens))
+        cg.add(hub.set_uart_irq_before_tx_binary_sensor(sens))
 
     if CONF_SET_STATUS_AT_BOOT in config:
         sens = await binary_sensor.new_binary_sensor(config[CONF_SET_STATUS_AT_BOOT])
-        cg.add(hub.set_status_at_boot_sensor(sens))
+        cg.add(hub.set_status_at_boot_binary_sensor(sens))
 
     if CONF_STOP_MODE_UART in config:
         sens = await binary_sensor.new_binary_sensor(config[CONF_STOP_MODE_UART])
-        cg.add(hub.set_stop_mode_uart_sensor(sens))
+        cg.add(hub.set_stop_mode_uart_binary_sensor(sens))
