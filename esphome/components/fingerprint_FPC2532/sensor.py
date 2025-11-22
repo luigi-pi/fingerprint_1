@@ -80,32 +80,32 @@ CONFIG_SCHEMA = cv.Schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
         cv.Optional(CONF_SCAN_INTERVAL): sensor.sensor_schema(
-            icon=ICON_CONFIG,
+            icon=ICON_COG,
             accuracy_decimals=0,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
         cv.Optional(CONF_UART_DLY_BEFORE_TX): sensor.sensor_schema(
-            icon=ICON_CONFIG,
+            icon=ICON_COG,
             accuracy_decimals=0,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
         cv.Optional(CONF_IDLE_TIME_BEFORE_SLEEP): sensor.sensor_schema(
-            icon=ICON_CONFIG,
+            icon=ICON_COG,
             accuracy_decimals=0,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
         cv.Optional(CONF_LOCKOUT_AFTER_NR_OF_FAILS): sensor.sensor_schema(
-            icon=ICON_CONFIG,
+            icon=ICON_COG,
             accuracy_decimals=0,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
         cv.Optional(CONF_LOCKOUT_TIME): sensor.sensor_schema(
-            icon=ICON_CONFIG,
+            icon=ICON_COG,
             accuracy_decimals=0,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
         cv.Optional(CONF_BAUD_RATE): sensor.sensor_schema(
-            icon=ICON_CONFIG,
+            icon=ICON_COG,
             accuracy_decimals=0,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
