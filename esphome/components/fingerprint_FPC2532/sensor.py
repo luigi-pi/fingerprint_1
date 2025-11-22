@@ -1,5 +1,5 @@
 import esphome.codegen as cg
-from esphome.components import sensor
+from esphome.components import binary_sensor, sensor
 import esphome.config_validation as cv
 from esphome.const import (
     CONF_CAPACITY,
@@ -112,6 +112,18 @@ CONFIG_SCHEMA = cv.Schema(
             accuracy_decimals=0,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
+        cv.Optional(CONF_UART_IRQ_BEFORE_TX): binary_sensor.binary_sensor_schema(
+            icon=ICON_CONFIG,
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        ),
+        cv.Optional(CONF_SET_STATUS_AT_BOOT): binary_sensor.binary_sensor_schema(
+            icon=ICON_CONFIG,
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        ),
+        cv.Optional(CONF_STOP_MODE_UART): binary_sensor.binary_sensor_schema(
+            icon=ICON_CONFIG,
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        ),
     }
 )
 
@@ -139,4 +151,11 @@ async def to_code(config):
             continue
         conf = config[key]
         sens = await sensor.new_sensor(conf)
+        cg.add(getattr(hub, f"set_{key}_sensor")(sens))
+
+    for key in [CONF_UART_IRQ_BEFORE_TX, CONF_STOP_MODE_UART, CONF_SET_STATUS_AT_BOOT]:
+        if key not in config:
+            continue
+        conf = config[key]
+        sens = await binary_sensor.new_sensor(conf)
         cg.add(getattr(hub, f"set_{key}_sensor")(sens))
