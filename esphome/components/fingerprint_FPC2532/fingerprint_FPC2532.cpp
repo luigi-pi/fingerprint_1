@@ -591,7 +591,7 @@ fpc::fpc_result_t FingerprintFPC2532Component::fpc_send_request(fpc::fpc_cmd_hdr
   if (result == FPC_RESULT_OK) {
     while (!available()) {
       // if (App.get_loop_component_start_time() - start > timeout_ms) {
-      ESP_LOGI(TAG, "waiting time in while loop waiting command feedback %u", millis() - start);
+      ESP_LOGV(TAG, "waiting time in while loop waiting command feedback %u", millis() - start);
       if (millis() - start > timeout_ms) {
         ESP_LOGE(TAG, "no feedback from sensor available (timeout)");
         return FPC_RESULT_TIMEOUT;
